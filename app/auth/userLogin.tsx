@@ -1,12 +1,11 @@
 import {
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 import {defaultStyle} from '@/themes/defaultStyles';
@@ -19,13 +18,22 @@ import TextInputField from '@/components/input/TextInputField';
 import EmailIcon from '@/assets/images/icons/email.png';
 import PasswordIcon from '@/assets/images/icons/password.png';
 import SubmitButton from '@/components/SubmitButton';
-import { router } from 'expo-router';
+import {router} from 'expo-router';
+import {Controller, useForm} from 'react-hook-form';
+import {LoginForm} from '@/types/auth';
 
-const userLogin = () => {
+const UserLogin = () => {
   const {customColors} = useTheme() as CustomTheme;
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const {
+    control,
+    handleSubmit,
+    formState: {errors},
+  } = useForm<LoginForm>();
+
+  const onSubmit = (data: LoginForm) => {
+    console.dir('Form Data: ' + data);
+  };
 
   return (
     <SafeAreaView>
@@ -54,34 +62,77 @@ const userLogin = () => {
           />
 
           <View style={styles.form}>
-            <TextInputField
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              secureTextEntry={false}
-              icon={EmailIcon}
+            <Controller
+              control={control}
+              rules={{
+                required: {value: true, message: 'Email is required'},
+                pattern: {
+                  value: /^[A-Za-z0-9_.+-]+@[a-zA-Z0-9-]+.+[a-zA-Z0-9-.]+$/,
+                  message: 'Invalid email',
+                },
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInputField
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="Email"
+                  secureTextEntry={false}
+                  icon={EmailIcon}
+                />
+              )}
+              name={'email'}
             />
-            <TextInputField
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              secureTextEntry={true}
-              icon={PasswordIcon}
+
+            {errors.email && (
+              <Text style={styles.err}>{errors.email.message}</Text>
+            )}
+
+            <Controller
+              control={control}
+              rules={{
+                required: {value: true, message: 'Password is required'},
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
+                },
+              }}
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInputField
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="Password"
+                  secureTextEntry={true}
+                  icon={PasswordIcon}
+                />
+              )}
+              name="password"
             />
-            <TouchableOpacity style={styles.forgotPassword} activeOpacity={.6}>
+
+            {errors.password && (
+              <Text style={styles.err}>{errors.password.message}</Text>
+            )}
+
+            <TouchableOpacity style={styles.forgotPassword} activeOpacity={0.6} onPress={()=> router.push('/auth/passwordForgot')}>
               <Label
                 value="Forgot Password?"
                 color={customColors.secondaryText}
                 textStyle={Typography.body}
               />
             </TouchableOpacity>
-            <SubmitButton text='LOGIN' textColor={customColors.btnText} backgroundColor={customColors.button} onPress={()=> {}} width={'100%'}  />
+            <SubmitButton
+              text="LOGIN"
+              textColor={customColors.btnText}
+              backgroundColor={customColors.button}
+              onPress={handleSubmit(onSubmit)}
+              width={'100%'}
+            />
           </View>
         </View>
 
-        <TouchableOpacity style={styles.footer} activeOpacity={0.6}
-          onPress={()=> router.push('/auth/userRegister')}
-        >
+        <TouchableOpacity
+          style={styles.footer}
+          activeOpacity={0.6}
+          onPress={() => router.push('/auth/userRegister')}>
           <Label
             value="Don't have an account?"
             color={customColors.secondaryText}
@@ -98,7 +149,7 @@ const userLogin = () => {
   );
 };
 
-export default userLogin;
+export default UserLogin;
 
 const styles = StyleSheet.create({
   footer: {
@@ -117,5 +168,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 24,
     alignItems: 'flex-end',
+  },
+  err: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: 'red',
+    marginLeft: 10,
+    marginBottom: 6,
   },
 });

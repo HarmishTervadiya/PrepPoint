@@ -25,4 +25,11 @@ export const Typography = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'semibold',
   },
+  inputErr: {
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  input: {
+    fontSize: 14,
+  }
 });

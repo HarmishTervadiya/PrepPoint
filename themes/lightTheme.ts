@@ -33,7 +33,7 @@ export const LightTheme:CustomTheme = {
         border: "#ADADAD",
         secondaryBorder: "#D3D3D3",
         lineBreak: "#D3D3D3",
-        error: "#FF0000",
+        error: "#FC0303",
         shadow: "#D3D3D3",
         secondaryShadow: "#8572FF",
         backBtn: "#E8E8E8",
