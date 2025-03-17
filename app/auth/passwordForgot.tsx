@@ -20,7 +20,6 @@ import PasswordIcon from '@/assets/images/icons/password.png';
 import SubmitButton from '@/components/SubmitButton';
 import {router} from 'expo-router';
 import {Controller, useForm} from 'react-hook-form';
-import {RegisterForm} from '@/types/auth';
 
 const PasswordForgot = () => {
   const {customColors} = useTheme() as CustomTheme;

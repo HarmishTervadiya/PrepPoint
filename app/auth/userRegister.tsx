@@ -43,11 +43,20 @@ const UserRegister = () => {
     control,
     handleSubmit,
     formState: {errors},
-  } = useForm<RegisterForm>();
+  } = useForm<RegisterForm>({
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
+      institute: '',
+      course: '',
+      proof: null,
+    },
+  });
 
   const onSubmit = (data: RegisterForm) => {
-    console.log("called"+data.proof?.get('proof')?.toString())
-    console.dir({name: "hello"});
+    console.log('called' + data.proof?.get('proof')?.toString());
+    console.dir({name: 'hello'});
 
     if (!isStep1Completed) {
       setIsStep1Completed(true);
@@ -155,7 +164,7 @@ const UserRegister = () => {
                         }
                       }}>
                       <Label
-                        value={value ? 'ID Proof Selected' : 'ID Proof'}
+                        value={'ID Proof'}
                         color={customColors.secondaryText}
                         textStyle={Typography.input}
                       />
@@ -185,7 +194,7 @@ const UserRegister = () => {
                     required: {value: true, message: 'Username is required'},
                     minLength: {
                       value: 4,
-                      message: 'Username is required',
+                      message: 'Username must be greater than 4 characters',
                     },
                   }}
                   render={({field: {onChange, value}}) => (
@@ -317,7 +326,7 @@ const styles = StyleSheet.create({
   },
   filePickerButton: {
     width: 'auto',
-    maxWidth: 150,
+    maxWidth: 130,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
