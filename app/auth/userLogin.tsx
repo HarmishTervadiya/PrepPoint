@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 import {defaultStyle} from '@/themes/defaultStyles';
@@ -21,10 +21,13 @@ import SubmitButton from '@/components/SubmitButton';
 import {router} from 'expo-router';
 import {Controller, useForm} from 'react-hook-form';
 import {LoginForm} from '@/types/auth';
-
+import {useDispatch} from 'react-redux';
+import {authenticateUser} from '@/redux-toolkit/features/auth/authSlice';
+import {AppDispatch} from '@/redux-toolkit/store';
+ 
 const UserLogin = () => {
   const {customColors} = useTheme() as CustomTheme;
-
+  const dispatch = useDispatch<AppDispatch>();
   const {
     control,
     handleSubmit,
@@ -32,7 +35,7 @@ const UserLogin = () => {
   } = useForm<LoginForm>();
 
   const onSubmit = (data: LoginForm) => {
-    console.dir('Form Data: ' + data);
+    dispatch(authenticateUser(data))
   };
 
   return (
@@ -90,29 +93,29 @@ const UserLogin = () => {
             <Controller
               control={control}
               rules={{
-                required: {value: true, message: 'Password is required'},
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
+                required: {value: true, message: 'Password is required'}
               }}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInputField
                   value={value}
                   onChangeText={onChange}
                   placeholder="Password"
-                  secureTextEntry={true}
+                  // secureTextEntry={true}
                   icon={PasswordIcon}
                 />
               )}
               name="password"
+              defaultValue={''}
             />
 
             {errors.password && (
               <Text style={styles.err}>{errors.password.message}</Text>
             )}
 
-            <TouchableOpacity style={styles.forgotPassword} activeOpacity={0.6} onPress={()=> router.push('/auth/passwordForgot')}>
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              activeOpacity={0.6}
+              onPress={() => router.push('/auth/passwordForgot')}>
               <Label
                 value="Forgot Password?"
                 color={customColors.secondaryText}
