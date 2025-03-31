@@ -1,8 +1,9 @@
 // src/api/index.js
 import axios from 'axios';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAuthData, saveAuthData } from '@/utils/authStorage';
+import { apiErrorMessageHandler } from '@/utils/apiMessageHandler';
 
-const API_BASE_URL = ' http://192.168.67.108:3000/api/v1';
+const API_BASE_URL = 'http://192.168.84.108:3000/api/v1';
 
 // Create an Axios instance with custom configuration
 const api = axios.create({
@@ -17,8 +18,8 @@ const api = axios.create({
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
-const processQueue = (error: unknown, token = null) => {
-  failedQueue.forEach(prom => {
+const processQueue = (error: any, token: any) => {
+  failedQueue.forEach((prom: any) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -30,95 +31,112 @@ const processQueue = (error: unknown, token = null) => {
 
 // ----- Request Interceptor ----- //
 api.interceptors.request.use(
-  async config => {
-    // Attach the access token from AsyncStorage to every request
-    // const token = await AsyncStorage.getItem('userToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    // Log request details in development mode for debugging
-    if (__DEV__) {
-      console.log(
-        `[API REQUEST] ${config.method.toUpperCase()} ${config.url}`,
-        config,
-      );
+  async (config) => {
+    try {
+      const authData = await getAuthData();
+      if (authData?.accessToken) {
+        config.headers.Authorization = `Bearer ${authData.accessToken}`;
+      }
+
+      // Log request details in development mode for debugging
+      if (__DEV__) {
+        console.log(
+          `[API REQUEST] => URL : ${config.url} \nMethod : ${config.method?.toUpperCase()} \nData : ${JSON.stringify(config.data)}`
+        );
+      }
+      return config;
+    } catch (error) {
+      console.error('Error in request interceptor:', error);
+      return Promise.reject(error);
     }
-    return config;
   },
-  error => Promise.reject(error),
+  (error) => {
+    console.error('Request Interceptor Error:', error);
+    return Promise.reject(error);
+  }
 );
 
 // ----- Response Interceptor ----- //
 api.interceptors.response.use(
-  response => {
-    // Log response details in development mode for debugging
-    if (__DEV__) {
-      console.log(
-        `[API RESPONSE] ${response.config.method.toUpperCase()} ${
-          response.config.url
-        }`,
-        response.data,
-      );
+  (response) => {
+    try {
+      // Log response details in development mode for debugging
+      if (__DEV__) {
+        console.log(
+          `[API RESPONSE] => \nURL : ${
+            response.config.url
+          } \nMethod : ${response.config.method?.toUpperCase()} \nData : ${JSON.stringify(response.data)}`
+        );
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error in response interceptor:', error);
+      return Promise.reject(error);
     }
-    return response.data;
   },
-  async error => {
+  async (error) => {
     const originalRequest = error.config;
-    // Check for 401 Unauthorized errors
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      // If a token refresh is already in progress, queue the request
-      // if (isRefreshing) {
-      //   return new Promise((resolve, reject) => {
-      //     failedQueue.push({resolve, reject});
-      //   })
-      //     .then(token => {
-      //       originalRequest.headers['Authorization'] = 'Bearer ' + token;
-      //       return api(originalRequest);
-      //     })
-      //     .catch(err => Promise.reject(err));
-      // }
+
+    // Handle timeout errors
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timed out:', error.message);
+      return Promise.reject(new Error('Request timeout. Please try again.'));
+    }
+
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error:', error.message);
+      return Promise.reject(new Error('Network error. Please check your connection.'));
+    }
+
+    // Check for 401 Unauthorized errors (Token Expiry)
+    if (error.response.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      // try {
-      //   // Retrieve the refresh token from AsyncStorage
-      //   const refreshToken = await AsyncStorage.getItem('refreshToken');
-      //   // Attempt to refresh the token (adjust the endpoint and payload as needed)
-      //   const {data} = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-      //     refreshToken,
-      //   });
-      //   const newAccessToken = data.accessToken;
+      try {
+        const authData = await getAuthData();
+        if (authData?.refreshToken) {
+          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refreshToken: authData.refreshToken,
+          });
 
-      //   // Save the new token for future requests
-      //   await AsyncStorage.setItem('userToken', newAccessToken);
-      //   // Update the default Authorization header for all future requests
-      //   api.defaults.headers.common['Authorization'] =
-      //     'Bearer ' + newAccessToken;
-      //   // Process any queued requests
-      //   processQueue(null, newAccessToken);
-      //   // Retry the original request with the new token
-      //   originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
-      //   return api(originalRequest);
-      // } catch (refreshError) {
-      //   processQueue(refreshError, null);
-      //   // Optionally, perform additional actions such as forcing a logout here
-      //   return Promise.reject(refreshError);
-      // } finally {
-      //   isRefreshing = false;
-      // }
+          const newAccessToken = data.accessToken;
+          await saveAuthData(authData.userId, newAccessToken, authData.refreshToken);
+          originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+          processQueue(null, newAccessToken);
+
+          return api(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+        processQueue(refreshError, null);
+        return Promise.reject(new Error('Session expired. Please log in again.'));
+      } finally {
+        isRefreshing = false;
+      }
     }
-    // For all other errors, simply reject
-    return Promise.reject(error);
-  },
+
+    // General error handling for other status codes
+    const errorMessage = apiErrorMessageHandler(error) || 'An unexpected error occurred.';
+    console.error(`API Error (${error.response.status}): ${errorMessage}`);
+
+    return Promise.reject(new Error(errorMessage));
+  }
 );
 
 // ----- Request Cancellation Helpers ----- //
-// Export these so components can cancel requests if needed.
 export const CancelToken = axios.CancelToken;
 export const source = () => axios.CancelToken.source();
 

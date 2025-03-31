@@ -1,8 +1,10 @@
 import {
   Image,
   ImageSourcePropType,
+  NativeSyntheticEvent,
   StyleSheet,
   TextInput,
+  TextInputFocusEventData,
   View,
 } from 'react-native';
 import React, { PropsWithChildren } from 'react';
@@ -12,6 +14,7 @@ import { CustomTheme } from '@/types/customTheme';
 type TextInputFieldProps = PropsWithChildren<{
   value: string;
   onChangeText: (text: string) => void;
+  onBlur: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void,
   placeholder: string;
   secureTextEntry?: boolean;
   icon: ImageSourcePropType;
@@ -23,6 +26,7 @@ const TextInputField = ({
   icon,
   secureTextEntry = false,
   onChangeText,
+  onBlur
 }: TextInputFieldProps) => {
   const { customColors } = useTheme() as CustomTheme;
   return (
@@ -33,6 +37,7 @@ const TextInputField = ({
         value={value}
         secureTextEntry={secureTextEntry}
         onChangeText={onChangeText}
+        onBlur={onBlur}
         style={styles.input}
         placeholderTextColor="#999"
       />

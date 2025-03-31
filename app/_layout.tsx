@@ -10,7 +10,9 @@ import {useColorScheme} from '@/hooks/useColorScheme';
 import {DarkTheme} from '@/themes/darkTheme';
 import {LightTheme} from '@/themes/lightTheme';
 import {Provider} from 'react-redux';
-import store from '../redux-toolkit/store';
+import store, { useAppDispatch } from '../redux-toolkit/store';
+import React from 'react';
+import { getAuthData } from '@/utils/authStorage';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 

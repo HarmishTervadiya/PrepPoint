@@ -4,14 +4,16 @@ export interface LoginForm {
 }
 
 export interface RegisterForm {
-  username: string;
+  name: string;
   email: string;
   password: string;
-  institute: string;
-  course: string;
-  proof: FormData | null; // Changed from File to FormData for React Native compatibility
 }
 
+export interface VerificationForm {
+  institute: string;
+  course: string;
+  proof: Attachment;
+}
 export interface DropdownOption {
   label: string;
   value: string;

@@ -1,5 +1,4 @@
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,54 +21,43 @@ import PasswordIcon from '@/assets/images/icons/password.png';
 import SubmitButton from '@/components/SubmitButton';
 import {router} from 'expo-router';
 import {Controller, useForm} from 'react-hook-form';
-import {RegisterForm} from '@/types/auth';
+import {RegisterForm, VerificationForm} from '@/types/auth';
 import DropdownField from '@/components/input/DropdownField';
 import pickDocument from '@/utils/filePicker';
 import {useAppDispatch} from '@/redux-toolkit/store';
-import {
-  authenticateUser,
-  signupUser,
-} from '@/redux-toolkit/features/auth/authSlice';
+import {signupUser} from '@/redux-toolkit/features/auth/authSlice';
 
-const UserRegister = () => {
+const UserVerification = () => {
   const {customColors} = useTheme() as CustomTheme;
   const dispatch = useAppDispatch();
+  const institutes = [
+    {value: '1', label: 'RKU'},
+    {value: '2', label: 'IIT'},
+  ];
+
+  const courses = [
+    {value: '1', label: 'B.Tech'},
+    {value: '2', label: 'Diploma'},
+  ];
 
   const {
     control,
     handleSubmit,
     formState: {errors},
-  } = useForm<RegisterForm>({
+  } = useForm<VerificationForm>({
     defaultValues: {
-      name: '',
-      email: '',
-      password: '',
+      institute: '',
+      course: '',
+      proof: {uri: '', type: ''},
     },
   });
 
-  const onSubmit = async (data: RegisterForm) => {
+  const onSubmit = (data: VerificationForm) => {
     console.log('data', data);
-    try {
-      const result = await dispatch(signupUser(data)); // Dispatch the signup action
-  
-      if (result.meta.requestStatus === 'fulfilled') {
-        console.log('User Registered Successfully:', result.payload);
-        Alert.alert('Success', 'Registration successful!');
-  
-        // After successful signup, authenticate the user
-        const loginResult = await dispatch(authenticateUser({ email: data.email, password: data.password }));
-        if (loginResult.meta.requestStatus === 'fulfilled') {
-          router.navigate('/(main)');
-        }
-      } else {
-        Alert.alert('Error', result.payload || 'Registration failed');
-      }
-    } catch (err) {
-      console.error('Error Registering:', err);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
-    }
+
+    // dispatch(signupUser(data));
+    // TO DO: implement register logic here
   };
-  
 
   return (
     <SafeAreaView>
@@ -86,13 +74,13 @@ const UserRegister = () => {
 
         <View style={{gap: 5}}>
           <Label
-            value={'Create your account'}
+            value={'Verification'}
             color={customColors.text}
             textStyle={Typography.heading}
           />
 
           <Label
-            value={'Fill the details and sign up to your account'}
+            value={'Verify your account and become a contributor'}
             color={customColors.secondaryText}
             textStyle={Typography.body}
           />
@@ -101,85 +89,93 @@ const UserRegister = () => {
             <Controller
               control={control}
               rules={{
-                required: {value: true, message: 'Username is required'},
-                minLength: {
-                  value: 4,
-                  message: 'Username must be greater than 4 characters',
-                },
+                required: {value: true, message: 'Institute is required'},
               }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInputField
+              render={({field: {onChange, value}}) => (
+                <DropdownField
+                  options={institutes}
+                  onSelect={onChange}
+                  placeholder="Select Institute"
                   value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="Username"
-                  secureTextEntry={false}
-                  icon={UserIcon}
                 />
               )}
-              name={'name'}
+              name="institute"
             />
 
-            {errors.name && (
-              <Text style={styles.err}>{errors.name.message}</Text>
+            {errors.institute && (
+              <Text style={styles.err}>{errors.institute.message}</Text>
             )}
 
             <Controller
               control={control}
               rules={{
-                required: {value: true, message: 'Email is required'},
-                pattern: {
-                  value: /^[A-Za-z0-9_.+-]+@[a-zA-Z0-9-]+.+[a-zA-Z0-9-.]+$/,
-                  message: 'Invalid email',
-                },
+                required: {value: true, message: 'Course is required'},
               }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInputField
+              render={({field: {onChange, value}}) => (
+                <DropdownField
+                  options={courses}
+                  onSelect={onChange}
+                  placeholder="Select Course"
                   value={value}
-                  onChangeText={onChange}
-                  placeholder="Email"
-                  onBlur={onBlur}
-                  secureTextEntry={false}
-                  icon={EmailIcon}
                 />
               )}
-              name={'email'}
+              name="course"
             />
 
-            {errors.email && (
-              <Text style={styles.err}>{errors.email.message}</Text>
+            {errors.course && (
+              <Text style={styles.err}>{errors.course.message}</Text>
             )}
 
             <Controller
               control={control}
               rules={{
-                required: {value: true, message: 'Password is required'},
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
+                required: {value: true, message: 'ID Proof is required'},
               }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInputField
-                  value={value}
-                  onChangeText={onChange}
-                  placeholder="Password"
-                  onBlur={onBlur}
-                  secureTextEntry={true}
-                  icon={PasswordIcon}
-                />
+              render={({field: {onChange, value}}) => (
+                <TouchableOpacity
+                  style={[styles.filePickerButton]}
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    try {
+                      const file = await pickDocument({multiple: false});
+                      if (file && file.length > 0) {
+                        const fileData = {
+                          uri: file[0].uri,
+                          type: file[0].type,
+                        };
+                        onChange(fileData);
+                      }
+                    } catch (err) {
+                      console.error('Error picking document:', err);
+                    }
+                  }}>
+                  <Label
+                    value={'ID Proof'}
+                    color={customColors.secondaryText}
+                    textStyle={Typography.input}
+                  />
+                </TouchableOpacity>
               )}
-              name="password"
+              name="proof"
             />
 
-            {errors.password && (
-              <Text style={styles.err}>{errors.password.message}</Text>
+            {errors.proof ? (
+              <Text style={styles.err}>{errors.proof.message}</Text>
+            ) : (
+              <Text
+                style={[
+                  styles.err,
+                  Typography.body,
+                  {color: customColors.secondaryText},
+                ]}>
+                Add your institute id as a proof
+              </Text>
             )}
 
             <View style={{height: 10}} />
 
             <SubmitButton
-              text={'SIGN UP'}
+              text={'VERIFY'}
               textColor={customColors.btnText}
               backgroundColor={customColors.button}
               onPress={handleSubmit(onSubmit)}
@@ -188,27 +184,27 @@ const UserRegister = () => {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.footer}
-          activeOpacity={0.6}
-          onPress={() => router.push('/auth/userLogin')}>
-          <Label
-            value="Already have an account?"
-            color={customColors.secondaryText}
-            textStyle={Typography.body}
-          />
-          <Label
-            value="Login"
-            color={customColors.primaryText}
-            textStyle={Typography.body}
-          />
-        </TouchableOpacity>
+        {/* <TouchableOpacity
+            style={styles.footer}
+            activeOpacity={0.6}
+            onPress={() => router.push('/auth/userLogin')}>
+            <Label
+              value="Already have an account?"
+              color={customColors.secondaryText}
+              textStyle={Typography.body}
+            />
+            <Label
+              value="Login"
+              color={customColors.primaryText}
+              textStyle={Typography.body}
+            />
+          </TouchableOpacity> */}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default UserRegister;
+export default UserVerification;
 
 const styles = StyleSheet.create({
   footer: {
