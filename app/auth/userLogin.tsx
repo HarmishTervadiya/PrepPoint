@@ -50,7 +50,7 @@ const UserLogin = () => {
 
       if (response.status === 200 || response.status === 201) {
         Alert.alert('Success', 'Login successful');
-        router.replace('/(main)'); // Prevent going back to login screen
+        router.replace('/(main)'); 
       } else {
         Alert.alert('Error', 'Something went wrong');
       }
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
-    // marginTop: 0,
   },
   forgotPassword: {
     marginTop: 8,

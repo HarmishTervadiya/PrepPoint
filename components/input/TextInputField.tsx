@@ -6,18 +6,26 @@ import {
   TextInput,
   TextInputFocusEventData,
   View,
+  TextInputProps,
+  TouchableOpacity,
 } from 'react-native';
-import React, { PropsWithChildren } from 'react';
-import { useTheme } from '@react-navigation/native';
-import { CustomTheme } from '@/types/customTheme';
+import React, {PropsWithChildren, useState} from 'react';
+import {useTheme} from '@react-navigation/native';
+import {CustomTheme} from '@/types/customTheme';
 
 type TextInputFieldProps = PropsWithChildren<{
   value: string;
   onChangeText: (text: string) => void;
-  onBlur: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void,
+  onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
   placeholder: string;
   secureTextEntry?: boolean;
   icon: ImageSourcePropType;
+  editable?: boolean;
+  disabled?: boolean;
+  autoCapitalize?: TextInputProps['autoCapitalize'];
+  keyboardType?: TextInputProps['keyboardType'];
+  maxLength?: number;
+  error?: boolean;
 }>;
 
 const TextInputField = ({
@@ -25,22 +33,97 @@ const TextInputField = ({
   value,
   icon,
   secureTextEntry = false,
+  editable = true,
+  disabled = false,
   onChangeText,
-  onBlur
+  onBlur,
+  autoCapitalize = 'sentences',
+  keyboardType = 'default',
+  maxLength,
+  error = false,
 }: TextInputFieldProps) => {
-  const { customColors } = useTheme() as CustomTheme;
+  const {customColors} = useTheme() as CustomTheme;
+  const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleFocus = () => setIsFocused(true);
+
+  const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    setIsFocused(false);
+    if (onBlur) {
+      onBlur(e);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <View style={[styles.container, { shadowColor: customColors.secondaryShadow }]}>
-      <Image source={icon} style={styles.icon} resizeMode='contain'resizeMethod='auto' />
+    <View
+      style={[
+        styles.container,
+        {
+          borderColor: error
+            ? 'red'
+            : isFocused
+            ? customColors.primary
+            : customColors.border || '#8572FF',
+          borderWidth: error || isFocused ? 1 : 0.1,
+          shadowColor: customColors.secondaryShadow,
+          opacity: disabled ? 0.7 : 1,
+        },
+      ]}>
+      <Image
+        source={icon}
+        style={[
+          styles.icon,
+          {
+            tintColor: error
+              ? 'red'
+              : isFocused
+              ? customColors.primary
+              : '#a4a4a4',
+          },
+        ]}
+        resizeMode="contain"
+        resizeMethod="auto"
+      />
+
       <TextInput
         placeholder={placeholder}
         value={value}
-        secureTextEntry={secureTextEntry}
+        secureTextEntry={secureTextEntry && !showPassword}
         onChangeText={onChangeText}
-        onBlur={onBlur}
-        style={styles.input}
-        placeholderTextColor="#999"
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        style={[
+          styles.input,
+          {color: error ? 'red' : customColors.text || '#333'},
+        ]}
+        placeholderTextColor={error ? 'rgba(255,0,0,0.5)' : '#999'}
+        editable={editable && !disabled}
+        autoCapitalize={autoCapitalize}
+        keyboardType={keyboardType}
+        maxLength={maxLength}
       />
+
+      {secureTextEntry && (
+        <TouchableOpacity
+          onPress={togglePasswordVisibility}
+          disabled={disabled || !editable}
+          style={styles.eyeIcon}>
+          <Image
+            source={
+              showPassword
+                ? require('@/assets/images/icons/eye-off.png') // Make sure to have these icons
+                : require('@/assets/images/icons/eye.png')
+            }
+            style={[styles.icon, {tintColor: '#a4a4a4'}]}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -58,18 +141,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 4,
     },
-    shadowOpacity: .5,
-    shadowRadius: 50,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 2,
-    borderColor: '#8572FF',
-    borderWidth: .1
   },
   input: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
     paddingVertical: 14,
     marginLeft: 8,
     padding: 0,
@@ -77,7 +157,8 @@ const styles = StyleSheet.create({
   icon: {
     width: 18,
     height: 18,
-    tintColor: '#a4a4a4',
+  },
+  eyeIcon: {
+    padding: 4,
   },
 });
-

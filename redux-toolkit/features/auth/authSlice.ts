@@ -59,6 +59,27 @@ const getUserDetails = createAsyncThunk('/student/getUserDetails', async (userId
   }
 })
 
+const generateOtp = createAsyncThunk('/student/generateOtp/', async (email: string, thunkAPI) => {
+  try {
+    const response = await api.post('/student/generateOtp', {email})
+    return response.data
+  } catch (error) {
+    console.error(error)
+    return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+  }
+})
+
+
+const verifyOtp = createAsyncThunk('/student/verifyOtp/', async (data: {studentId: string, otp: string}, thunkAPI) => {
+  try {
+    const response = await api.post('/student/verifyOtp', {studentId: data.studentId, otp: data.otp})
+    return response.data
+  } catch (error: any) {
+    console.error(error)
+    return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+  }
+})
+
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -122,6 +143,6 @@ export const authSlice = createSlice({
   },
 });
 
-export {authenticateUser, signupUser, getUserDetails};
+export {authenticateUser, signupUser, getUserDetails, generateOtp, verifyOtp};
 // export const { loginUser, logoutUser } = authSlice.actions
 export default authSlice.reducer;

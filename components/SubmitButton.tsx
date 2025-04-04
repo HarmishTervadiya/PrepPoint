@@ -7,12 +7,13 @@ type SubmitButtonProps = PropsWithChildren<{
     backgroundColor: ColorValue;
     textColor: ColorValue;
     fontSize?: number;
+    disabled?: boolean
     onPress: () => void;
 }>
 
-const SubmitButton = ({text, textColor, fontSize=16, backgroundColor, width, onPress}: SubmitButtonProps) => {
+const SubmitButton = ({text, textColor, fontSize=16, backgroundColor, width, disabled=false, onPress}: SubmitButtonProps) => {
   return (
-    <TouchableOpacity style={[styles.loginButton, {width: width, backgroundColor: backgroundColor}]} onPress={onPress} activeOpacity={.9}>
+    <TouchableOpacity style={[styles.loginButton, {width: width, backgroundColor: backgroundColor}]} onPress={onPress} activeOpacity={.9} disabled={disabled}>
       <Text style={[styles.loginButtonText, {color: textColor, fontSize: fontSize}]}>{text}</Text>
     </TouchableOpacity>
   );
