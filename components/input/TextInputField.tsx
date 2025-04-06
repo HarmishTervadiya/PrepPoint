@@ -12,6 +12,7 @@ import {
 import React, {PropsWithChildren, useState} from 'react';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
+import PasswordIcon from '@/assets/images/icons/password.png'
 
 type TextInputFieldProps = PropsWithChildren<{
   value: string;
@@ -114,11 +115,7 @@ const TextInputField = ({
           disabled={disabled || !editable}
           style={styles.eyeIcon}>
           <Image
-            source={
-              showPassword
-                ? require('@/assets/images/icons/eye-off.png') // Make sure to have these icons
-                : require('@/assets/images/icons/eye.png')
-            }
+            source={PasswordIcon}
             style={[styles.icon, {tintColor: '#a4a4a4'}]}
             resizeMode="contain"
           />

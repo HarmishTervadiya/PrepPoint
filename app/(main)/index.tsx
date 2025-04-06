@@ -1,10 +1,22 @@
-import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text} from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useRouter, useSegments} from 'expo-router';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
 import {getAuthData} from '@/utils/authStorage';
-import {getUserDetails} from '@/redux-toolkit/features/auth/authSlice';
+import {
+  clearUserData,
+  getUserDetails,
+} from '@/redux-toolkit/features/auth/authSlice';
 
 const Index = () => {
   const router = useRouter();
@@ -17,18 +29,20 @@ const Index = () => {
   useEffect(() => {
     // Simulate a delay to ensure layout/rendering is complete (optional)
     const timeout = setTimeout(() => setIsReady(true), 0);
-
     return () => clearTimeout(timeout);
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchAuthData = async () => {
       try {
         const auth = await getAuthData();
         if (auth?.userId) {
           const result = await dispatch(getUserDetails(auth.userId));
           if (result.meta.requestStatus === 'rejected') {
-            Alert.alert('Error', 'Something went wrong while fetching user details');
+            Alert.alert(
+              'Error',
+              'Something went wrong while fetching user details',
+            );
           }
         }
       } catch (error) {
@@ -43,7 +57,7 @@ const Index = () => {
 
   useEffect(() => {
     // if (isReady && authChecked && segments[0] !== 'auth') {
-      // router.replace('/auth/userLogin');
+    // router.replace('/auth/userLogin');
     // }
   }, [isReady, user, segments]);
 
@@ -59,7 +73,17 @@ const Index = () => {
   return (
     <SafeAreaView>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text>Welcome {user.id} to the Home Page</Text>
+        <View>
+          <Text>Welcome {user.id} to the Home Page</Text>
+
+          <TouchableOpacity onPress={() => router.push('/auth/userLogin')}>
+            <Text>Login</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => dispatch(clearUserData())}>
+            <Text>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

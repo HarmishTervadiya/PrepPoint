@@ -46,9 +46,9 @@ const UserLogin = () => {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await dispatch(authenticateUser(data)).unwrap();
+      const response = await dispatch(authenticateUser(data));
 
-      if (response.status === 200 || response.status === 201) {
+      if (response.meta.requestStatus == 'fulfilled') {
         Alert.alert('Success', 'Login successful');
         router.replace('/(main)'); 
       } else {
