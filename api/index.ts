@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getAuthData, saveAuthData } from '@/utils/authStorage';
 import { apiErrorMessageHandler } from '@/utils/apiMessageHandler';
 
-const API_BASE_URL = 'http://192.168.84.108:3000/api/v1';
+const API_BASE_URL = 'http://192.168.54.74:3000/api/v1';
 
 // Create an Axios instance with custom configuration
 const api = axios.create({
@@ -35,7 +35,7 @@ api.interceptors.request.use(
     try {
       const authData = await getAuthData();
       if (authData?.accessToken) {
-        config.headers.Authorization = `Bearer ${authData.accessToken}`;
+        config.headers.Authorization = `Bearer${authData.accessToken}`;
       }
 
       // Log request details in development mode for debugging
