@@ -83,6 +83,11 @@ const Index = () => {
           <TouchableOpacity onPress={() => dispatch(clearUserData())}>
             <Text>Logout</Text>
           </TouchableOpacity>
+
+          
+          <TouchableOpacity onPress={() => router.push('/auth/changePassword')}>
+            <Text>Change Password</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

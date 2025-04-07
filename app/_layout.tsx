@@ -10,9 +10,9 @@ import {useColorScheme} from '@/hooks/useColorScheme';
 import {DarkTheme} from '@/themes/darkTheme';
 import {LightTheme} from '@/themes/lightTheme';
 import {Provider} from 'react-redux';
-import store, { useAppDispatch } from '../redux-toolkit/store';
+import store, {useAppDispatch} from '../redux-toolkit/store';
 import React from 'react';
-import { getAuthData } from '@/utils/authStorage';
+import {getAuthData} from '@/utils/authStorage';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +40,12 @@ export default function RootLayout() {
             name="auth/passwordForgot"
             options={{headerShown: false}}
           />
+
+          <Stack.Screen
+            name="auth/changePassword"
+            options={{headerShown: false}}
+          />
+
           <Stack.Screen name="auth/userLogin" options={{headerShown: false}} />
           <Stack.Screen
             name="auth/userRegister"

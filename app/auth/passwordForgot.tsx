@@ -126,7 +126,6 @@ const PasswordForgot = () => {
           await dispatch(
             resetPassword({
               studentId,
-              otp: data.otp,
               newPassword: data.newPassword,
             }),
           ).unwrap();
@@ -287,7 +286,7 @@ const PasswordForgot = () => {
                     Change email
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={styles.resendContainer}
                   onPress={handleResendOTP}

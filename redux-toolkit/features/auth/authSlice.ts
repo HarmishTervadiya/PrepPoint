@@ -15,6 +15,8 @@ interface AuthState {
     };
   };
   isLoggedIn: boolean;
+  loading: boolean;
+  error: string | null;
   forgotPassword: {
     studentId: string;
     otpSent: boolean;
@@ -27,6 +29,8 @@ interface AuthState {
 const initialState: AuthState = {
   user: {id: '', email: '', profilePic: {url: '', publicId: ''}},
   isLoggedIn: false,
+  loading: false,
+  error: null,
   forgotPassword: {
     studentId: '',
     otpSent: false,
@@ -70,14 +74,10 @@ const verifyOtp = createAsyncThunk(
 // Reset password with verified OTP
 const resetPassword = createAsyncThunk(
   'auth/resetPassword',
-  async (
-    data: {studentId: string; otp: string; newPassword: string},
-    thunkAPI,
-  ) => {
+  async (data: {studentId: string; newPassword: string}, thunkAPI) => {
     try {
       const response = await api.post('/student/resetPassword', {
         studentId: data.studentId,
-        otp: data.otp,
         newPassword: data.newPassword,
       });
       return response.data;
@@ -145,8 +145,13 @@ const getUserDetails = createAsyncThunk(
 
 const changePassword = createAsyncThunk(
   'auth/changePassword',
-  async (data, thunkAPI) => {
+  async (data: any, thunkAPI) => {
     try {
+      const response = await api.post('/student/changePassword', {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
+      return response.data;
     } catch (error) {
       console.log(error);
       const errorMessage = apiErrorMessageHandler(error);
@@ -258,7 +263,7 @@ export const authSlice = createSlice({
       .addCase(generateOtp.rejected, (state, action) => {
         state.forgotPassword.loading = false;
         state.forgotPassword.otpSent = false;
-        console.log(action.payload)
+        console.log(action.payload);
         state.forgotPassword.error = action.payload as string;
       });
 
@@ -299,16 +304,27 @@ export const authSlice = createSlice({
       });
 
     // Change password reducers
-    builder.addCase(changePassword.fulfilled, (state, action) => {});
+    builder
+      .addCase(clearUserData.fulfilled, (state, action) => {
+        state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+        state.isLoggedIn = false;
+      })
+      .addCase(clearUserData.rejected, (state, action) => {
+        console.log(action.payload);
+      });
 
-    builder.addCase(clearUserData.fulfilled, (state, action) => {
-      state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
-      state.isLoggedIn = false;
-    });
-
-    builder.addCase(clearUserData.rejected, (state, action) => {
-      console.log(action.payload);
-    });
+    builder
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(changePassword.pending, (state, action)=> {
+        state.loading =true
+      })
+      .addCase(changePassword.rejected, (state, action)=> {
+        state.loading = false;
+        state.error = action.payload as string
+      })
   },
 });
 
@@ -320,7 +336,7 @@ export {
   verifyOtp,
   resetPassword,
   changePassword,
-  clearUserData
+  clearUserData,
 };
 export const {resetForgotPasswordState, logoutUser} = authSlice.actions;
 export default authSlice.reducer;
