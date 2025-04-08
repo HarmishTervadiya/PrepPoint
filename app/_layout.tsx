@@ -36,6 +36,11 @@ export default function RootLayout() {
     <Provider store={store}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : LightTheme}>
         <Stack>
+        <Stack.Screen
+            name="auth/userVerification"
+            options={{headerShown: false}}
+          />
+
           <Stack.Screen
             name="auth/passwordForgot"
             options={{headerShown: false}}

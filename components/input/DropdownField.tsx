@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, StyleSheet, Image, KeyboardAvoidingView} from 'react-native';
+import {View, StyleSheet, Image} from 'react-native';
 import {Dropdown} from 'react-native-element-dropdown';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
@@ -22,40 +22,40 @@ const DropdownField = ({
   const [isFocus, setIsFocus] = useState(false);
 
   return (
-    <KeyboardAvoidingView>
-      <View
-        style={[styles.container, {shadowColor: customColors.secondaryShadow}]}>
-        <Dropdown
-          style={styles.dropdown}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={options}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder={!isFocus ? placeholder : '...'}
-          searchPlaceholder="Search..."
-          value={value}
-          onFocus={() => setIsFocus(true)}
-          onBlur={() => setIsFocus(false)}
-          onChange={item => {
-            onSelect(item.value);
-            setIsFocus(false);
-          }}
-          renderRightIcon={() => (
-            <Image
-              source={DownArrow}
-              style={styles.rightIcon}
-              resizeMode="contain"
-              resizeMethod="auto"
-            />
-          )}
-        />
-      </View>
-    </KeyboardAvoidingView>
+    <View
+      style={[styles.container, {shadowColor: customColors.secondaryShadow}]}>
+      <Dropdown
+        style={styles.dropdown}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={options}
+        search
+        maxHeight={200} // Reduced height so it fits better
+        labelField="label"
+        valueField="value"
+        placeholder={!isFocus ? placeholder : '...'}
+        searchPlaceholder="Search..."
+        value={value}
+        onFocus={() => setIsFocus(true)}
+        onBlur={() => setIsFocus(false)}
+        dropdownPosition="auto" // Show dropdown above instead of below
+        keyboardAvoiding={true} // Enable keyboard avoiding behavior
+        onChange={item => {
+          onSelect(item.value);
+          setIsFocus(false);
+        }}
+        renderRightIcon={() => (
+          <Image
+            source={DownArrow}
+            style={styles.rightIcon}
+            resizeMode="contain"
+            resizeMethod="auto"
+          />
+        )}
+      />
+    </View>
   );
 };
 
@@ -72,11 +72,11 @@ const styles = StyleSheet.create({
       width: 0,
       height: 10,
     },
-    shadowOpacity: .5,
+    shadowOpacity: 0.5,
     shadowRadius: 50,
     elevation: 2,
     borderColor: '#8572FF',
-    borderWidth: .1
+    borderWidth: 0.1,
   },
   dropdown: {
     flex: 1,

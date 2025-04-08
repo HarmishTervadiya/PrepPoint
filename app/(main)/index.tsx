@@ -22,7 +22,7 @@ const Index = () => {
   const router = useRouter();
   const segments = useSegments(); // Monitor current route segments
   const dispatch = useAppDispatch();
-  const user = useAppSelector(state => state.authReducer.user); // Simulate user state
+  const {user, isLoggedIn} = useAppSelector(state => state.authReducer);
   const [isReady, setIsReady] = useState(false); // Track readiness of layout/router
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -84,10 +84,16 @@ const Index = () => {
             <Text>Logout</Text>
           </TouchableOpacity>
 
-          
           <TouchableOpacity onPress={() => router.push('/auth/changePassword')}>
             <Text>Change Password</Text>
           </TouchableOpacity>
+
+          {isLoggedIn && (
+            <TouchableOpacity
+              onPress={() => router.push('/auth/userVerification')}>
+              <Text>User Verification</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

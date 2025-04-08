@@ -10,6 +10,7 @@ export interface RegisterForm {
 }
 
 export interface VerificationForm {
+  username: string;
   institute: string;
   course: string;
   proof: Attachment;
@@ -22,5 +23,6 @@ export interface DropdownOption {
 export interface Attachment {
   uri: string;
   type: string;
+  size: number;
 }
 

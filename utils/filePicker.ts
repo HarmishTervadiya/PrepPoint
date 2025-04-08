@@ -19,6 +19,7 @@ const pickDocument = async ({multiple, type}: DocumentPickerProps) => {
       return result.assets.map(file => ({
         uri: file.uri,
         type: file.mimeType,
+        size: file.size
       }));
     } else if (result.canceled) {
       return null; // User canceled the picker

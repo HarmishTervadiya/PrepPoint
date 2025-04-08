@@ -1,6 +1,6 @@
-import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice, nanoid} from '@reduxjs/toolkit';
 import api from '@/api/index';
-import {LoginForm, RegisterForm} from '@/types/auth';
+import {LoginForm, RegisterForm, VerificationForm} from '@/types/auth';
 import {apiErrorMessageHandler} from '@/utils/apiMessageHandler';
 import {clearAuthData, saveAuthData} from '@/utils/authStorage';
 
@@ -67,6 +67,32 @@ const verifyOtp = createAsyncThunk(
     } catch (error) {
       const errorMessage = apiErrorMessageHandler(error);
       return thunkAPI.rejectWithValue(errorMessage);
+    }
+  },
+);
+
+const getInstitutes = createAsyncThunk(
+  '/institutes/getInstitutes',
+  async (data, thunkAPI) => {
+    try {
+      const response = await api.get('/institute/getAllInstitutes');
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+    }
+  },
+);
+
+const getInstituteCourses = createAsyncThunk(
+  '/instituteCourses/',
+  async (instituteId: string, thunkAPI) => {
+    try {
+      const response = await api.get(
+        `/instituteCourse/getInstituteCourses/${instituteId}`,
+      );
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
     }
   },
 );
@@ -169,6 +195,39 @@ const clearUserData = createAsyncThunk(
     } catch (error) {
       console.log(error);
       return thunkAPI.rejectWithValue(error);
+    }
+  },
+);
+
+const addVerificationRequest = createAsyncThunk(
+  'verification/addVerificationRequest/',
+  async (data: VerificationForm, thunkAPI) => {
+    try {
+      const formData = new FormData();
+      formData.append('username', data.username);
+      formData.append('instituteId', data.institute);
+      formData.append('courseId', data.course);
+
+      // Fix the proof file data
+      if (data.proof && data.proof.uri) {
+        formData.append('proof', {
+          uri: data.proof.uri,
+          type: data.proof.type,
+          size: data.proof.size,
+          name: `proof_file${nanoid(5)}`,
+        });
+      }
+
+      const response = await api.post('/verification/addRequest/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      const errorMessage = apiErrorMessageHandler(error);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   },
 );
@@ -303,7 +362,7 @@ export const authSlice = createSlice({
         state.forgotPassword.error = action.payload as string;
       });
 
-    // Change password reducers
+    // clear user data reducers
     builder
       .addCase(clearUserData.fulfilled, (state, action) => {
         state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
@@ -313,18 +372,33 @@ export const authSlice = createSlice({
         console.log(action.payload);
       });
 
+    // Change password reducers
     builder
       .addCase(changePassword.fulfilled, (state, action) => {
         state.loading = false;
         state.error = null;
       })
-      .addCase(changePassword.pending, (state, action)=> {
-        state.loading =true
+      .addCase(changePassword.pending, (state, action) => {
+        state.loading = true;
       })
-      .addCase(changePassword.rejected, (state, action)=> {
+      .addCase(changePassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string
+        state.error = action.payload as string;
+      });
+
+    // Change password reducers
+    builder
+      .addCase(getInstituteCourses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
       })
+      .addCase(getInstituteCourses.pending, (state, action) => {
+        state.loading = true;
+      })
+      .addCase(getInstituteCourses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
@@ -337,6 +411,9 @@ export {
   resetPassword,
   changePassword,
   clearUserData,
+  getInstitutes,
+  getInstituteCourses,
+  addVerificationRequest,
 };
 export const {resetForgotPasswordState, logoutUser} = authSlice.actions;
 export default authSlice.reducer;
