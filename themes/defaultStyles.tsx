@@ -17,6 +17,22 @@ export const defaultStyle = StyleSheet.create({
     },
     input: {
     
+    },
+    headerContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 20
+    },
+    headerText: {
+        width: '90%',
+        fontSize: 18,
+        textAlign: 'center',
+        fontWeight: '500',
+        // marginRight: 20,
+        // backgroundColor: 'red'
+        // alignSelf: 'center'
     }
 
 })

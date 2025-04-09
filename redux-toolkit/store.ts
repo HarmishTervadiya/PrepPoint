@@ -1,10 +1,14 @@
 import {configureStore} from '@reduxjs/toolkit';
 import authReducer from './features/auth/authSlice';
+import questionReducer from './features/uploadQuestion/questionSlice'
+import subjectReducer from './features/uploadQuestion/subjectSlice'
 import {useDispatch, useSelector} from 'react-redux';
 
 const store = configureStore({
   reducer: {
     authReducer,
+    questionReducer,
+    subjectReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
