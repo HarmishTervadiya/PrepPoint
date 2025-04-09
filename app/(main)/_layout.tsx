@@ -1,15 +1,19 @@
-import React from "react";
-import { Tabs } from "expo-router";
+import React from 'react';
+import {Tabs} from 'expo-router';
 
 const _layout = () => {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarHideOnKeyboard: true,
+      }}>
+        
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: 'Home',
           headerShown: false,
-          animation: "shift",
+          animation: 'shift',
           tabBarShowLabel: false,
         }}
       />
@@ -17,9 +21,9 @@ const _layout = () => {
       <Tabs.Screen
         name="search"
         options={{
-          title: "Search",
+          title: 'Search',
           headerShown: false,
-          animation: "shift",
+          animation: 'shift',
           tabBarShowLabel: false,
         }}
       />
@@ -27,9 +31,9 @@ const _layout = () => {
       <Tabs.Screen
         name="addQuestion"
         options={{
-          title: "Add Question",
+          title: 'Add Question',
           headerShown: false,
-          animation: "shift",
+          animation: 'shift',
           tabBarShowLabel: false,
         }}
       />
@@ -37,9 +41,9 @@ const _layout = () => {
       <Tabs.Screen
         name="userDashboard"
         options={{
-          title: "Dashboard",
+          title: 'Dashboard',
           headerShown: false,
-          animation: "shift",
+          animation: 'shift',
           tabBarShowLabel: false,
         }}
       />
@@ -47,9 +51,9 @@ const _layout = () => {
       <Tabs.Screen
         name="userProfile"
         options={{
-          title: "Profile",
+          title: 'Profile',
           headerShown: false,
-          animation: "shift",
+          animation: 'shift',
           tabBarShowLabel: false,
         }}
       />

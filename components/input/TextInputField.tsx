@@ -12,7 +12,7 @@ import {
 import React, {PropsWithChildren, useState} from 'react';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
-import PasswordIcon from '@/assets/images/icons/password.png'
+import PasswordIcon from '@/assets/images/icons/password.png';
 
 type TextInputFieldProps = PropsWithChildren<{
   value: string;
@@ -20,12 +20,13 @@ type TextInputFieldProps = PropsWithChildren<{
   onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
   placeholder: string;
   secureTextEntry?: boolean;
-  icon: ImageSourcePropType;
+  icon?: ImageSourcePropType;
   editable?: boolean;
   disabled?: boolean;
   autoCapitalize?: TextInputProps['autoCapitalize'];
   keyboardType?: TextInputProps['keyboardType'];
   maxLength?: number;
+  multiline?: boolean;
   error?: boolean;
 }>;
 
@@ -41,6 +42,7 @@ const TextInputField = ({
   autoCapitalize = 'sentences',
   keyboardType = 'default',
   maxLength,
+  multiline=false,
   error = false,
 }: TextInputFieldProps) => {
   const {customColors} = useTheme() as CustomTheme;
@@ -75,22 +77,23 @@ const TextInputField = ({
           opacity: disabled ? 0.7 : 1,
         },
       ]}>
-      <Image
-        source={icon}
-        style={[
-          styles.icon,
-          {
-            tintColor: error
-              ? 'red'
-              : isFocused
-              ? customColors.primary
-              : '#a4a4a4',
-          },
-        ]}
-        resizeMode="contain"
-        resizeMethod="auto"
-      />
-
+      {icon && (
+        <Image
+          source={icon}
+          style={[
+            styles.icon,
+            {
+              tintColor: error
+                ? 'red'
+                : isFocused
+                ? customColors.primary
+                : '#a4a4a4',
+            },
+          ]}
+          resizeMode="contain"
+          resizeMethod="auto"
+        />
+      )}
       <TextInput
         placeholder={placeholder}
         value={value}
@@ -107,6 +110,7 @@ const TextInputField = ({
         autoCapitalize={autoCapitalize}
         keyboardType={keyboardType}
         maxLength={maxLength}
+        multiline={multiline}
       />
 
       {secureTextEntry && (

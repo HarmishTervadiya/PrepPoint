@@ -71,10 +71,6 @@ export default function RootLayout() {
           />
 
           <Stack.Screen
-            name="edit/passwordChange"
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
             name="edit/profileEditor"
             options={{headerShown: false}}
           />
