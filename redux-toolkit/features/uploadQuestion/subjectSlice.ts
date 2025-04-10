@@ -87,11 +87,13 @@ export const subjectSlice = createSlice({
       })
       .addCase(getAllSubjects.fulfilled, (state, action) => {
         state.loading = false;
-        state.subjects = action.payload.subjects.map((subject: any) => ({
+        state.subjects = action.payload.map((subject: any) => ({
           name: subject.subjectName,
           _id: subject._id,
           instituteCourseId: subject.instituteCourseId,
         }));
+
+
       })
       .addCase(getAllSubjects.rejected, (state, action) => {
         state.loading = false;
@@ -100,5 +102,5 @@ export const subjectSlice = createSlice({
   },
 });
 
-export const {clearSubjects} = subjectSlice.actions;
+export const {clearSubjects, } = subjectSlice.actions;
 export default subjectSlice.reducer;

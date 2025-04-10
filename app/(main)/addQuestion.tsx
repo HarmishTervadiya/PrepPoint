@@ -19,11 +19,18 @@ import Label from '@/components/text/Label';
 import TextInputField from '@/components/input/TextInputField';
 import SubmitButton from '@/components/SubmitButton';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
-import {Attachment, DropdownOption} from '@/types/auth';
+import {Attachment} from '@/types/auth';
 import pickDocument from '@/utils/filePicker';
 import {QuestionForm} from '@/types/question';
 import DropdownField from '@/components/input/DropdownField';
 import {getAllSubjects} from '@/redux-toolkit/features/uploadQuestion/subjectSlice';
+import {
+  Toolbar,
+  RichText,
+  useEditorBridge,
+  ToolbarItems,
+} from '@10play/tentap-editor';
+import {uploadQuestion} from '@/redux-toolkit/features/uploadQuestion/questionSlice';
 
 const UploadQuestion = () => {
   const {customColors} = useTheme() as CustomTheme;
@@ -32,10 +39,21 @@ const UploadQuestion = () => {
     state => state.subjectReducer,
   );
 
-  const [subjectList, setsubjectList] = useState<{value: string; label: string}[]>([]);
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+
+  const editor = useEditorBridge({
+    autofocus: true,
+    avoidIosKeyboard: false,
+    initialContent: 'Start Writing',
+  });
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error', error);
+    }
+  }, [error]);
 
   const {
     control,
@@ -45,17 +63,22 @@ const UploadQuestion = () => {
     defaultValues: {
       title: '',
       subject: '',
-      marks: '',
+      marks: 1,
       answer: '',
     },
   });
 
+  const fetchSubjects = async () => {
+    await dispatch(getAllSubjects());
+  };
+
   useEffect(() => {
-    dispatch(getAllSubjects());
+    fetchSubjects();
   }, [dispatch]);
 
   const handleRefresh = () => {
     setRefreshLoading(true);
+    fetchSubjects();
     setTimeout(() => {
       setRefreshLoading(false);
     }, 1000);
@@ -80,10 +103,26 @@ const UploadQuestion = () => {
     setCurrentStep(1);
   };
 
-  const onSubmit = (data: QuestionForm) => {
+  const onSubmit = async (data: QuestionForm) => {
+    const content = await editor.getHTML();
+    if (
+      !content ||
+      content === '<p>Start Writing</p>' ||
+      content === 'Start Writing'
+    ) {
+      Alert.alert('Error', 'Please add content to your answer');
+      return;
+    }
+
+    data.answer = content;
     data.attachments = attachments;
-    console.log('Submitted Data:', data);
-    Alert.alert('Success', 'Question uploaded!');
+    const response = await dispatch(uploadQuestion(data));
+
+    if (response.meta.requestStatus === 'fulfilled') {
+      Alert.alert('Success', 'Question uploaded successfully');
+    }else{
+      Alert.alert('Error', response.payload);
+    }
   };
 
   const renderStepIndicator = () => (
@@ -197,7 +236,10 @@ const UploadQuestion = () => {
         }}
         render={({field: {onChange, onBlur, value}}) => (
           <DropdownField
-            options={subjectList}
+            options={subjects.map(subject => ({
+              label: subject.name,
+              value: subject._id,
+            }))}
             onSelect={selectedValue => {
               onChange(selectedValue);
             }}
@@ -226,14 +268,18 @@ const UploadQuestion = () => {
         name="marks"
         rules={{
           required: {value: true, message: 'Marks are required'},
+
+          min: {value: 1, message: 'Minimum of 1 mark'},
+          max: {value: 10, message: 'Miaximum of 10 mark'},
         }}
         render={({field: {onChange, onBlur, value}}) => (
           <TextInputField
-            value={value}
+            value={value.toString()}
             onChangeText={onChange}
             onBlur={onBlur}
             placeholder="Enter Marks"
             secureTextEntry={false}
+            keyboardType="decimal-pad"
             // style={styles.input}
           />
         )}
@@ -300,55 +346,60 @@ const UploadQuestion = () => {
   );
 
   const renderStep2 = () => (
-    <View style={styles.form}>
-      <Label value="Enter Answer" color="#333" textStyle={styles.fieldLabel} />
-      <Controller
-        control={control}
-        name="answer"
-        render={({field: {onChange, onBlur, value}}) => (
-          <TextInputField
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            placeholder="Enter your answer here..."
-            secureTextEntry={false}
-            multiline={true}
-            // style={styles.textArea}
-          />
-        )}
-      />
-
-      <View style={styles.toolbarContainer}>
-        <View style={styles.toolbar}>
-          {/* Editor toolbar icons would go here */}
-        </View>
+    <View style={styles.step2Container}>
+      {/* Editor Section */}
+      <View style={styles.editorContainer}>
+        <RichText
+          editor={editor}
+          allowsLinkPreview
+          menuItems={[]}
+          style={styles.richTextEditor}
+          scrollEnabled={true}
+        />
       </View>
 
+      {/* Submit Button */}
       <View style={styles.submitButtonContainer}>
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, {backgroundColor: customColors.button}]}
           onPress={handleSubmit(onSubmit)}>
           <Text style={styles.checkmarkIcon}>✓</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Bottom Horizontal Toolbar */}
+      <View style={styles.bottomToolbarContainer}>
+        <View style={styles.toolbar}>
+          <Toolbar
+            editor={editor}
+            shouldHideDisabledToolbarItems
+            hidden={false}
+          />
+        </View>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#f9f9f9'}}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            onRefresh={handleRefresh}
-            refreshing={refreshLoading}
-            colors={[customColors.primary]}
-          />
-        }
-        contentContainerStyle={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{flex: 1}}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              onRefresh={handleRefresh}
+              refreshing={refreshLoading}
+              colors={[customColors.primary]}
+            />
+          }
+          contentContainerStyle={[
+            styles.container,
+            currentStep === 2 && {flexGrow: 1},
+          ]}
+          scrollEnabled={currentStep !== 2}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Upload Question</Text>
           </View>
@@ -356,8 +407,8 @@ const UploadQuestion = () => {
           {renderStepIndicator()}
 
           {currentStep === 1 ? renderStep1() : renderStep2()}
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -368,7 +419,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     // backgroundColor: '#f9f9f9',
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   header: {
     flexDirection: 'row',
@@ -376,19 +427,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f1f1f1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  backIcon: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   headerTitle: {
     fontSize: 18,
@@ -433,32 +471,15 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+    paddingVertical: 20,
     paddingHorizontal: 20,
     marginTop: 12,
+    backgroundColor: '#ffffff',
   },
   fieldLabel: {
     fontSize: 14,
     fontWeight: 'bold',
     // marginBottom: 8,
-  },
-  input: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#ebebeb',
-  },
-  textArea: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    height: 200,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: '#ebebeb',
   },
   attachmentsSection: {
     marginTop: 8,
@@ -503,39 +524,52 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 24,
   },
-  toolbarContainer: {
-    position: 'absolute',
-    right: 30,
-    top: 20,
-    bottom: 20,
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+  step2Container: {
+    flex: 1,
+    position: 'relative',
+    height: '100%',
   },
-  toolbar: {
+  editorContainer: {
+    flex: 1,
     backgroundColor: 'white',
     borderRadius: 8,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#ebebeb',
+    paddingHorizontal: 10,
+    // marginBottom: 70, // Space for the bottom toolbar
+  },
+  richTextEditor: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
+  },
+  bottomToolbarContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    backgroundColor: 'white',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   submitButtonContainer: {
     position: 'absolute',
     right: 20,
-    bottom: -20,
-    alignItems: 'flex-end',
+    bottom: 95, // Adjusted to position alongside toolbar
+    zIndex: 10, // Ensure button appears above toolbar
   },
   submitButton: {
     width: 46,
     height: 46,
-    borderRadius: 23,
-    // backgroundColor: '#7c4dff',
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

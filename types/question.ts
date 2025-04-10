@@ -3,7 +3,7 @@ import { Attachment } from "./auth";
 export type QuestionForm = {
     title: string;
     subject: string;
-    marks: string;
+    marks: number;
     answer: string;
     attachments: null | Attachment[];
   };
