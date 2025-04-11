@@ -17,12 +17,15 @@ import {
   clearUserData,
   getUserDetails,
 } from '@/redux-toolkit/features/auth/authSlice';
+import QuestionCard from '@/components/cards/QuestionCard';
+import {getAllQuestions} from '@/redux-toolkit/features/content/questionSlice';
 
 const Index = () => {
   const router = useRouter();
   const segments = useSegments(); // Monitor current route segments
   const dispatch = useAppDispatch();
   const {user, isLoggedIn} = useAppSelector(state => state.authReducer);
+  const {questions} = useAppSelector(state => state.questionContentReducer);
   const [isReady, setIsReady] = useState(false); // Track readiness of layout/router
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -61,6 +64,10 @@ const Index = () => {
     // }
   }, [isReady, user, segments]);
 
+  useEffect(() => {
+    dispatch(getAllQuestions());
+  }, [dispatch]);
+
   // Return a loading indicator if root layout is not ready
   if (!isReady) {
     return (
@@ -94,6 +101,24 @@ const Index = () => {
               <Text>User Verification</Text>
             </TouchableOpacity>
           )}
+
+          <Text>{questions.length}</Text>
+          {questions.map(question => (
+            <QuestionCard
+              key={question.id}
+              username={'hello'}
+              title={'JS QUESTION'}
+              subject={'Javascript'}
+              marks={1}
+              attachments={3}
+              reads={0}
+              date={'30-4-2007'}
+              showFull={true}
+              profilePic={''}
+              onPress={() => console.log('hello')}
+              id={''}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

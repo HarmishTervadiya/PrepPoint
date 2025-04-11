@@ -31,5 +31,9 @@ export const Typography = StyleSheet.create({
   },
   input: {
     fontSize: 14,
+  },
+  cardDetails: {
+    fontSize: 12,
+    fontWeight: '500'
   }
 });

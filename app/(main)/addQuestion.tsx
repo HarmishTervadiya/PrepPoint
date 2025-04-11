@@ -59,6 +59,7 @@ const UploadQuestion = () => {
     control,
     handleSubmit,
     formState: {errors},
+    reset,
   } = useForm<QuestionForm>({
     defaultValues: {
       title: '',
@@ -119,8 +120,11 @@ const UploadQuestion = () => {
     const response = await dispatch(uploadQuestion(data));
 
     if (response.meta.requestStatus === 'fulfilled') {
+      reset();
+      setCurrentStep(1);
+      editor.setContent('Start Writing');
       Alert.alert('Success', 'Question uploaded successfully');
-    }else{
+    } else {
       Alert.alert('Error', response.payload);
     }
   };

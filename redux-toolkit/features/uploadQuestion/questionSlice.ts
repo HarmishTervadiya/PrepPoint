@@ -1,11 +1,11 @@
 import api from '@/api';
 import {Attachment} from '@/types/auth';
-import {Question, QuestionForm} from '@/types/question';
+import {QuestionState, QuestionForm} from '@/types/question';
 import {apiErrorMessageHandler} from '@/utils/apiMessageHandler';
 import {createAsyncThunk, createSlice, nanoid, Slice} from '@reduxjs/toolkit';
 import {Platform} from 'react-native';
 
-const intialState: Question = {
+const intialState: QuestionState = {
   title: '',
   subject: '',
   marks: 0,
@@ -21,7 +21,7 @@ const uploadQuestion = createAsyncThunk(
     try {
       const formData = new FormData();
       formData.append('title', data.title);
-      formData.append('subject', data.subject);
+      formData.append('subjectId', data.subject);
       formData.append('marks', data.marks.toString());
       formData.append('content', data.answer);
 
