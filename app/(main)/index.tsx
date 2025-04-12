@@ -62,6 +62,7 @@ const Index = () => {
     // if (isReady && authChecked && segments[0] !== 'auth') {
     // router.replace('/auth/userLogin');
     // }
+    // if (isReady) router.replace('/detail/questionDetails');
   }, [isReady, user, segments]);
 
   useEffect(() => {
@@ -106,17 +107,17 @@ const Index = () => {
           {questions.map(question => (
             <QuestionCard
               key={question.id}
-              username={'hello'}
-              title={'JS QUESTION'}
-              subject={'Javascript'}
-              marks={1}
-              attachments={3}
-              reads={0}
-              date={'30-4-2007'}
+              username={question.owner.username || ''}
+              title={question.title || ''}
+              subject={question.subject}
+              marks={question.marks}
+              attachments={question.attachments?.length || 0}
+              reads={question.reads}
+              date={question.date}
               showFull={true}
-              profilePic={''}
-              onPress={() => console.log('hello')}
-              id={''}
+              profilePic={question.owner.profilePic.url}
+              onPress={() => router.push({pathname: '/detail/questionDetails', params: {questionId: question.id}})}
+              id={question.id}
             />
           ))}
         </View>

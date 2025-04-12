@@ -27,6 +27,7 @@ type QuestionCardProps = {
 export default function QuestionCard({
   id,
   username,
+  profilePic,
   title,
   subject,
   marks,
@@ -64,7 +65,11 @@ export default function QuestionCard({
       </Text>
       <View style={defaultStyle.row}>
         <View style={[defaultStyle.row, {gap: 8}]}>
-          <Image source={Profile} style={styles.profilePic} />
+          {profilePic ? (
+            <Image source={{uri: profilePic}} style={styles.profilePic} />
+          ) : (
+            <Image source={Profile} style={styles.profilePic} />
+          )}
           <Text
             style={[
               styles.cardText,

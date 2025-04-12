@@ -300,7 +300,7 @@ const UploadQuestion = () => {
             style={[styles.addButton, {backgroundColor: customColors.primary}]}
             onPress={async () => {
               try {
-                const files = await pickDocument({multiple: true});
+                const files = await pickDocument({multiple: true, type: ['application/pdf']});
                 if (files && files.length > 0) {
                   const fileData = files.map(file => ({
                     uri: file.uri,
