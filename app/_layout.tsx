@@ -12,7 +12,7 @@ import {LightTheme} from '@/themes/lightTheme';
 import {Provider} from 'react-redux';
 import store, {useAppDispatch} from '../redux-toolkit/store';
 import React from 'react';
-import {getAuthData} from '@/utils/authStorage';
+import {MenuProvider} from 'react-native-popup-menu';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -35,54 +35,59 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : LightTheme}>
-        <Stack>
-        <Stack.Screen
-            name="auth/userVerification"
-            options={{headerShown: false}}
-          />
+        <MenuProvider>
+          <Stack>
+            <Stack.Screen
+              name="auth/userVerification"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen
-            name="auth/passwordForgot"
-            options={{headerShown: false}}
-          />
+            <Stack.Screen
+              name="auth/passwordForgot"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen
-            name="auth/changePassword"
-            options={{headerShown: false}}
-          />
+            <Stack.Screen
+              name="auth/changePassword"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen name="auth/userLogin" options={{headerShown: false}} />
-          <Stack.Screen
-            name="auth/userRegister"
-            options={{headerShown: false}}
-          />
+            <Stack.Screen
+              name="auth/userLogin"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="auth/userRegister"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen
-            name="detail/exploreContent"
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="detail/fileViewer"
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="detail/questionDetails"
-            options={{headerShown: false}}
-          />
+            <Stack.Screen
+              name="detail/exploreContent"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="detail/fileViewer"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="detail/questionDetails"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen
-            name="edit/profileEditor"
-            options={{headerShown: false}}
-          />
-          <Stack.Screen
-            name="edit/questionEditor"
-            options={{headerShown: false}}
-          />
+            <Stack.Screen
+              name="edit/profileEditor"
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="edit/questionEditor"
+              options={{headerShown: false}}
+            />
 
-          <Stack.Screen name="(main)" options={{headerShown: false}} />
+            <Stack.Screen name="(main)" options={{headerShown: false}} />
 
-          <Stack.Screen name="+not-found" />
-        </Stack>
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </MenuProvider>
         <StatusBar style="auto" />
       </ThemeProvider>
     </Provider>
