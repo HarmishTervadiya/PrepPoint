@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '@react-navigation/native';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
@@ -31,19 +31,34 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 import {Ionicons} from '@expo/vector-icons';
+import {
+  getUserProfileDetails,
+  searchQuestion,
+} from '@/redux-toolkit/features/userProfile/userProfileSlice';
+import {Question} from '@/types/question';
+import timeAgoFormatter from '@/utils/dateFormatter';
+import {useRouter} from 'expo-router';
 
 const UserProfile = () => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  const auth = useAppSelector(state => state.authReducer);
+  const {user, userQuestions, searchResults, loading, error} = useAppSelector(
+    state => state.userProfileReducer,
+  );
+  const authUser = useAppSelector(state => state.authReducer);
   const {customColors} = useTheme() as CustomTheme;
 
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
-  const fetchUserQuestions = useCallback(() => {
-    // Implement your fetch logic here
+  const fetchUserQuestions = useCallback(async () => {
+    dispatch(getUserProfileDetails(authUser.user.id));
     console.log('Fetching user questions...');
-  }, []);
+  }, [dispatch]);
+
+  useEffect(() => {
+    fetchUserQuestions();
+  }, [dispatch]);
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);
@@ -55,12 +70,14 @@ const UserProfile = () => {
 
   const handleSearch = useCallback((text: string) => {
     setSearchValue(text);
-    // Implement search functionality here
+    dispatch(searchQuestion(text));
   }, []);
 
   const handleQuestionPress = useCallback((questionId: string) => {
-    // Navigate to question details or implement your logic
-    console.log('Question pressed:', questionId);
+    router.push({
+      pathname: '/detail/questionDetails',
+      params: {questionId: questionId},
+    });
   }, []);
 
   const handleEditQuestion = useCallback(() => {
@@ -71,37 +88,46 @@ const UserProfile = () => {
     console.log('Delete question');
   }, []);
 
-  const renderQuestion = () => (
+  const renderQuestion = (question: Question) => (
     <TouchableOpacity
+      key={question.id}
       activeOpacity={0.9}
       style={styles.questionContainer}
-      onPress={() => handleQuestionPress('sample-id')}>
+      onPress={() => handleQuestionPress(question.id)}>
       <View style={[defaultStyle.row, styles.questionHeader]}>
-        <Text style={styles.subjectBox}>{'Harmis'}</Text>
-        
+        <Text style={styles.subjectBox}>{question.subject}</Text>
+
         <Menu>
-          <MenuTrigger customStyles={{
-            triggerWrapper: styles.menuTrigger
-          }}>
+          <MenuTrigger
+            customStyles={{
+              triggerWrapper: styles.menuTrigger,
+            }}>
             <Ionicons name="ellipsis-horizontal" size={24} color="#555" />
           </MenuTrigger>
-          <MenuOptions customStyles={{
-            optionsContainer: styles.menuOptions
-          }}>
-            <MenuOption onSelect={handleEditQuestion} customStyles={{
-              optionWrapper: styles.menuOption
+          <MenuOptions
+            customStyles={{
+              optionsContainer: styles.menuOptions,
             }}>
+            <MenuOption
+              onSelect={handleEditQuestion}
+              customStyles={{
+                optionWrapper: styles.menuOption,
+              }}>
               <View style={styles.menuOptionContent}>
                 <Ionicons name="pencil-outline" size={18} color="#555" />
                 <Text style={styles.menuOptionText}>Edit</Text>
               </View>
             </MenuOption>
-            <MenuOption onSelect={handleDeleteQuestion} customStyles={{
-              optionWrapper: styles.menuOption
-            }}>
+            <MenuOption
+              onSelect={handleDeleteQuestion}
+              customStyles={{
+                optionWrapper: styles.menuOption,
+              }}>
               <View style={styles.menuOptionContent}>
                 <Ionicons name="trash-outline" size={18} color="#FF4545" />
-                <Text style={[styles.menuOptionText, {color: '#FF4545'}]}>Delete</Text>
+                <Text style={[styles.menuOptionText, {color: '#FF4545'}]}>
+                  Delete
+                </Text>
               </View>
             </MenuOption>
           </MenuOptions>
@@ -114,14 +140,18 @@ const UserProfile = () => {
           Typography.title,
           {color: customColors.text},
         ]}>
-        {'PSEE Exam Questions'}
+        {question.title}
       </Text>
 
       <View style={styles.divider} />
 
       <View style={defaultStyle.row}>
-        <Text style={styles.fileBox}>PDF</Text>
-        <Text style={styles.fileBox}>2 Files</Text>
+        {/* <Text style={styles.fileBox}>PDF</Text> */}
+        {question.attachments && question.attachments.length > 0 && (
+          <Text style={styles.fileBox}>
+            {question.attachments?.length} Files
+          </Text>
+        )}
 
         <Text
           style={[
@@ -129,7 +159,7 @@ const UserProfile = () => {
             Typography.cardDetails,
             {color: customColors.secondaryText},
           ]}>
-          {'0 Reads'}
+          {(question.reads || '0') + ' Reads'}
         </Text>
 
         <Text
@@ -138,7 +168,7 @@ const UserProfile = () => {
             Typography.cardDetails,
             {color: customColors.secondaryText},
           ]}>
-          {'7 days ago'}
+          {timeAgoFormatter(question.date)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -172,7 +202,14 @@ const UserProfile = () => {
           <View style={styles.contentContainer}>
             <View style={[defaultStyle.row, styles.profileSection]}>
               <View style={[defaultStyle.row, styles.profileInfo]}>
-                <Image source={Profile} style={styles.profilePic} />
+                {user.profilePic && user.profilePic.uri ? (
+                  <Image
+                    source={{uri: user.profilePic.uri}}
+                    style={styles.profilePic}
+                  />
+                ) : (
+                  <Image source={Profile} style={styles.profilePic} />
+                )}
                 <View>
                   <Text
                     style={[
@@ -180,7 +217,7 @@ const UserProfile = () => {
                       Typography.body,
                       {color: customColors.text},
                     ]}>
-                    {'Harmis Tervadiya'}
+                    {user.name}
                   </Text>
                   <Text
                     style={[
@@ -188,11 +225,15 @@ const UserProfile = () => {
                       Typography.cardDetails,
                       {color: customColors.secondaryText},
                     ]}>
-                    {'Harmis'}
+                    {user.username || ''}
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.editProfile}>
+              <TouchableOpacity
+                onPress={() => {
+                  router.push('/edit/profileEditor');
+                }}
+                style={styles.editProfile}>
                 <Text style={styles.editProfileText}>Edit Profile</Text>
               </TouchableOpacity>
             </View>
@@ -210,7 +251,11 @@ const UserProfile = () => {
               icon={SearchIcon}
             />
 
-            {renderQuestion()}
+            {searchValue
+              ? searchResults.map(question => renderQuestion(question))
+              : userQuestions &&
+                userQuestions.length > 0 &&
+                userQuestions.map(question => renderQuestion(question))}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -9,6 +9,7 @@ import SubmitButton from '../SubmitButton';
 import {Question} from '@/types/question';
 import Profile from '@/assets/images/icons/user-icon.png';
 import {nanoid} from '@reduxjs/toolkit';
+import timeAgoFormatter from '@/utils/dateFormatter';
 
 type QuestionCardProps = {
   id: string;
@@ -52,7 +53,7 @@ export default function QuestionCard({
             Typography.cardDetails,
             {color: customColors.secondaryText},
           ]}>
-          {date}
+          {timeAgoFormatter(date)}
         </Text>
       </View>
       <Text
@@ -94,14 +95,11 @@ export default function QuestionCard({
           <View style={styles.divider}></View>
 
           <View style={defaultStyle.row}>
-            {/* <View style={defaultStyle.row}> */}
             {attachments && (
-              <>
-                {/* <Text style={styles.fileBox}>PDF</Text> */}
-                <Text style={styles.fileBox}>{attachments} Files</Text>
-              </>
+              <Text style={styles.fileBox}>
+                {attachments} {attachments === 1 ? 'File' : 'Files'}
+              </Text>
             )}
-            {/* </View> */}
 
             <TouchableOpacity
               activeOpacity={0.8}

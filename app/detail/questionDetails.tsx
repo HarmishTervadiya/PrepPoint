@@ -161,8 +161,8 @@ const QuestionDetails = () => {
               collapsed={IsCollapsed}
               style={styles.collapsibleContainer}>
               <View style={styles.authorContainer}>
-                {questionDetails?.owner?.profilePic.url ? (
-                  <Image source={{ uri: questionDetails.owner.profilePic.url }} style={styles.profilePic} />
+                {questionDetails?.owner?.profilePic.uri ? (
+                  <Image source={{ uri: questionDetails.owner.profilePic.uri }} style={styles.profilePic} />
                 ) : (
                   <Image source={Profile} style={styles.profilePic} />
                 )}

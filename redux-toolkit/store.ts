@@ -3,6 +3,8 @@ import authReducer from './features/auth/authSlice';
 import questionReducer from './features/uploadQuestion/questionSlice';
 import subjectReducer from './features/uploadQuestion/subjectSlice';
 import questionContentReducer from './features/content/questionSlice';
+import userProfileReducer from './features/userProfile/userProfileSlice';
+
 import {useDispatch, useSelector} from 'react-redux';
 
 const store = configureStore({
@@ -11,6 +13,7 @@ const store = configureStore({
     questionReducer,
     subjectReducer,
     questionContentReducer,
+    userProfileReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -10,7 +10,7 @@ interface AuthState {
     id: string;
     email: string;
     profilePic: {
-      url: string;
+      uri: string;
       publicId: string;
     };
   };
@@ -27,7 +27,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: {id: '', email: '', profilePic: {url: '', publicId: ''}},
+  user: {id: '', email: '', profilePic: {uri: '', publicId: ''}},
   isLoggedIn: false,
   loading: false,
   error: null,
@@ -246,7 +246,7 @@ export const authSlice = createSlice({
       };
     },
     logoutUser: state => {
-      state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+      state.user = {id: '', email: '', profilePic: {uri: '', publicId: ''}};
       state.isLoggedIn = false;
     },
   },
@@ -271,7 +271,7 @@ export const authSlice = createSlice({
         );
       })
       .addCase(authenticateUser.rejected, state => {
-        state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+        state.user = {id: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -289,7 +289,7 @@ export const authSlice = createSlice({
         state.isLoggedIn = true;
       })
       .addCase(signupUser.rejected, state => {
-        state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+        state.user = {id: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -304,7 +304,7 @@ export const authSlice = createSlice({
         state.isLoggedIn = true;
       })
       .addCase(getUserDetails.rejected, state => {
-        state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+        state.user = {id: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -365,7 +365,7 @@ export const authSlice = createSlice({
     // clear user data reducers
     builder
       .addCase(clearUserData.fulfilled, (state, action) => {
-        state.user = {id: '', email: '', profilePic: {url: '', publicId: ''}};
+        state.user = {id: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       })
       .addCase(clearUserData.rejected, (state, action) => {

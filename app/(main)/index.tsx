@@ -115,7 +115,7 @@ const Index = () => {
               reads={question.reads}
               date={question.date}
               showFull={true}
-              profilePic={question.owner.profilePic.url}
+              profilePic={question.owner.profilePic.uri}
               onPress={() => router.push({pathname: '/detail/questionDetails', params: {questionId: question.id}})}
               id={question.id}
             />
