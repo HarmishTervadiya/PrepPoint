@@ -95,17 +95,21 @@ export default function QuestionCard({
           <View style={styles.divider}></View>
 
           <View style={defaultStyle.row}>
-            {attachments && (
-              <Text style={styles.fileBox}>
-                {attachments} {attachments === 1 ? 'File' : 'Files'}
-              </Text>
-            )}
-
+            <View>
+              {attachments && (
+                <Text style={styles.fileBox}>
+                  {attachments} {attachments === 1 ? 'File' : 'Files'}
+                </Text>
+              )}
+            </View>
+            
             <TouchableOpacity
               activeOpacity={0.8}
               style={[
                 styles.detailButton,
-                {backgroundColor: customColors.button},
+                {
+                  backgroundColor: customColors.button,
+                },
               ]}
               onPress={onPress}>
               <Text style={{color: customColors.btnText}}>View Details</Text>
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     height: 30,
     width: 30,
     borderRadius: 15,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
   },
   subjectBox: {
     backgroundColor: '#E3F0FF',

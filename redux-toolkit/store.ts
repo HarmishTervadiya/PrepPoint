@@ -3,6 +3,8 @@ import authReducer from './features/auth/authSlice';
 import questionReducer from './features/uploadQuestion/questionSlice';
 import subjectReducer from './features/uploadQuestion/subjectSlice';
 import questionContentReducer from './features/content/questionSlice';
+import instituteReducer from './features/content/instituteSlice';
+import courseReducer from './features/content/courseSlice';
 import userProfileReducer from './features/userProfile/userProfileSlice';
 
 import {useDispatch, useSelector} from 'react-redux';
@@ -13,7 +15,9 @@ const store = configureStore({
     questionReducer,
     subjectReducer,
     questionContentReducer,
-    userProfileReducer
+    userProfileReducer,
+    instituteReducer,
+    courseReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

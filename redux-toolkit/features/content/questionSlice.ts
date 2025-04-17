@@ -33,12 +33,60 @@ const getAllQuestions = createAsyncThunk(
   },
 );
 
+const getTopQuestions = createAsyncThunk(
+  '/question/getTopQuestions',
+  async (data, thunkAPI) => {
+    try {
+      const response = await api.get('/question/getTopQuestions');
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+    }
+  },
+);
+
+const searchQuestions = createAsyncThunk(
+  '/question/searchWithFilters',
+  async (data: any, {rejectWithValue}) => {
+    try {
+      const {searchQuery, filters} = data;
+      
+      // Build query params string from all filter values
+      let queryParams = '';
+      let isFirstParam = true;
+      
+      // Add each filter parameter if it exists
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+          queryParams += isFirstParam ? `?${key}=${value}` : `&${key}=${value}`;
+          isFirstParam = false;
+        }
+      });
+
+      const response = await api.get(
+        `/question/search/${searchQuery}${queryParams}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(apiErrorMessageHandler(error));
+    }
+  },
+);
+
 // New thunk for getting question details
 const getQuestionDetails = createAsyncThunk(
   '/question/getQuestionDetails',
   async (questionId: string, thunkAPI) => {
     try {
-      const response = await api.get(`/question/getQuestionDetails/${questionId}`);
+      const response = await api.get(
+        `/question/getQuestionDetails/${questionId}`,
+      );
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
@@ -50,7 +98,7 @@ const questionSlice = createSlice({
   initialState: initialState,
   name: 'question',
   reducers: {
-    clearQuestionDetails: (state) => {
+    clearQuestionDetails: state => {
       state.questionDetails = null;
       state.detailsError = null;
     },
@@ -80,10 +128,61 @@ const questionSlice = createSlice({
       .addCase(getAllQuestions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      });
+
+    // getTopQuestions reducers
+    builder
+      .addCase(getTopQuestions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.questions = action.payload.map((question: any) => ({
+          id: question._id,
+          owner: question.owner,
+          title: question.title,
+          subject: question.subject.subjectName,
+          marks: question.marks,
+          attachments: question.attachments as Attachment[],
+          content: question.content,
+          reads: question.reads,
+          date: question.createdAt,
+        }));
       })
-      
+      .addCase(getTopQuestions.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTopQuestions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(searchQuestions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.questions = action.payload.map((question: any) => ({
+          id: question._id,
+          owner: question.owner,
+          title: question.title,
+          subject: question.subject.subjectName,
+          marks: question.marks,
+          attachments: question.attachments as Attachment[],
+          content: question.content,
+          reads: question.reads,
+          date: question.createdAt,
+        }));
+      })
+      .addCase(searchQuestions.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchQuestions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       // getQuestionDetails reducers
-      .addCase(getQuestionDetails.pending, (state) => {
+      .addCase(getQuestionDetails.pending, state => {
         state.detailsLoading = true;
         state.detailsError = null;
       })
@@ -111,6 +210,6 @@ const questionSlice = createSlice({
   },
 });
 
-export {getAllQuestions, getQuestionDetails};
+export {getAllQuestions, getQuestionDetails, getTopQuestions, searchQuestions};
 export const {clearQuestionDetails} = questionSlice.actions;
 export default questionSlice.reducer;
