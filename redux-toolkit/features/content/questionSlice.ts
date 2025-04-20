@@ -50,21 +50,27 @@ const searchQuestions = createAsyncThunk(
   async (data: any, {rejectWithValue}) => {
     try {
       const {searchQuery, filters} = data;
-      
+
+      // Use a default value for empty search queries
+      const query = searchQuery || 'all';
+
       // Build query params string from all filter values
-      let queryParams = '';
-      let isFirstParam = true;
-      
+      const queryParams = new URLSearchParams();
+
       // Add each filter parameter if it exists
       Object.entries(filters).forEach(([key, value]) => {
         if (value) {
-          queryParams += isFirstParam ? `?${key}=${value}` : `&${key}=${value}`;
-          isFirstParam = false;
+          queryParams.append(key, value as string);
         }
       });
 
+      // Convert params to string and add ? prefix if any params exist
+      const queryString = queryParams.toString()
+        ? `?${queryParams.toString()}`
+        : '';
+
       const response = await api.get(
-        `/question/search/${searchQuery}${queryParams}`,
+        `/question/search/${query}${queryString}`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +78,7 @@ const searchQuestions = createAsyncThunk(
         },
       );
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(apiErrorMessageHandler(error));
     }

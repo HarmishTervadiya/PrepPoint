@@ -9,23 +9,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  BackHandler,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
-import TextInputField from '@/components/input/TextInputField';
-import Label from '@/components/text/Label';
-import {
-  getUserProfileDetails,
-  searchQuestion,
-} from '@/redux-toolkit/features/userProfile/userProfileSlice';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
 import {defaultStyle} from '@/themes/defaultStyles';
-import {Typography} from '@/themes/typography';
 import {CustomTheme} from '@/types/customTheme';
-import {useTheme} from '@react-navigation/native';
+import {useTheme, useFocusEffect} from '@react-navigation/native';
 import {useRouter} from 'expo-router';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import Profile from '@/assets/images/icon.png';
 import SearchIcon from '@/assets/images/icons/search.png';
 import FilterIcon from '@/assets/images/icons/filter-icon.png';
 
@@ -45,14 +38,8 @@ import {getAllInstitutes} from '@/redux-toolkit/features/content/instituteSlice'
 import DropdownField from '@/components/input/DropdownField';
 import {getAllSubjects} from '@/redux-toolkit/features/uploadQuestion/subjectSlice';
 import SubmitButton from '@/components/SubmitButton';
-import {
-  Controller,
-  ControllerFieldState,
-  ControllerRenderProps,
-  FieldValues,
-  useForm,
-  UseFormStateReturn,
-} from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
+import {getAllCourses} from '@/redux-toolkit/features/content/courseSlice';
 
 const search = () => {
   const router = useRouter();
@@ -71,9 +58,7 @@ const search = () => {
     defaultValues: {instituteId: '', courseId: '', subjectId: ''},
   });
 
-  const {institutes, institutesLoading, institutesError} = useAppSelector(
-    state => state.instituteReducer,
-  );
+  const {institutes} = useAppSelector(state => state.instituteReducer);
   const {subjects} = useAppSelector(state => state.subjectReducer);
   const {courses} = useAppSelector(state => state.courseReducer);
   const {customColors} = useTheme() as CustomTheme;
@@ -86,16 +71,50 @@ const search = () => {
     subjectId: '',
   });
 
+  // Reference to the menu for controlling open/close state
+  const menuRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const fetchTopQuestions = useCallback(async () => {
     dispatch(getTopQuestions());
     dispatch(getAllInstitutes());
     dispatch(getAllSubjects());
-    console.log('Fetching questions...');
+    dispatch(getAllCourses());
   }, [dispatch]);
+
+  // Effect to handle cleanup when component loses focus (tab switch)
+  useFocusEffect(
+    useCallback(() => {
+      // When screen comes into focus, fetch questions
+      fetchTopQuestions();
+
+      // When screen loses focus, reset filters
+      return () => {
+        clearFilters();
+        // Close menu if open when switching tabs
+        if (menuRef.current && menuOpen) {
+          setMenuOpen(false);
+        }
+      };
+    }, [fetchTopQuestions, menuOpen]),
+  );
 
   useEffect(() => {
     fetchTopQuestions();
-  }, [dispatch]);
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (menuOpen) {
+          setMenuOpen(false);
+          return true;
+        }
+        return false;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, [fetchTopQuestions, menuOpen]);
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);
@@ -119,22 +138,22 @@ const search = () => {
   );
 
   const handleFilterChange = (data: any) => {
-    // Update active filters for UI display
     const newFilters = {
       instituteId: data.instituteId || '',
       courseId: data.courseId || '',
       subjectId: data.subjectId || '',
     };
-    
+
     setActiveFilters(newFilters);
-    
-    // Dispatch search with all filters
+
     dispatch(
       searchQuestions({
         searchQuery: searchValue,
         filters: newFilters,
       }),
     );
+
+    setMenuOpen(false);
   };
 
   const clearFilters = () => {
@@ -143,14 +162,13 @@ const search = () => {
       courseId: '',
       subjectId: '',
     });
-    
+
     reset({
       instituteId: '',
       courseId: '',
       subjectId: '',
     });
-    
-    // Re-fetch questions without filters
+
     dispatch(
       searchQuestions({
         searchQuery: searchValue,
@@ -159,20 +177,25 @@ const search = () => {
     );
   };
 
-  const handleQuestionPress = useCallback((questionId: string) => {
-    router.push({
-      pathname: '/detail/questionDetails',
-      params: {questionId: questionId},
-    });
-  }, [router]);
+  const handleQuestionPress = useCallback(
+    (questionId: string) => {
+      router.push({
+        pathname: '/detail/questionDetails',
+        params: {questionId: questionId},
+      });
+    },
+    [router],
+  );
 
-  // Find the names of selected filters for display
   const getFilterName = (type: string, id: string) => {
     if (!id) return '';
-    
-    switch(type) {
+
+    switch (type) {
       case 'institute':
-        return institutes.find(i => i._id === id)?.instituteName || 'Selected Institute';
+        return (
+          institutes.find(i => i._id === id)?.instituteName ||
+          'Selected Institute'
+        );
       case 'course':
         return courses.find(c => c._id === id)?.courseName || 'Selected Course';
       case 'subject':
@@ -197,9 +220,9 @@ const search = () => {
               colors={[customColors.primary]}
             />
           }
-          contentContainerStyle={[defaultStyle.container, styles.container]}>
+          contentContainerStyle={[styles.container]}>
           <View style={styles.contentContainer}>
-            <View style={[defaultStyle.row, {gap: 5}]}>
+            <View style={[defaultStyle.row, {paddingHorizontal: 8, gap: 5}]}>
               <View
                 style={[
                   styles.filterButtonContainer,
@@ -226,7 +249,10 @@ const search = () => {
               </View>
 
               <Menu
+                ref={menuRef}
                 renderer={SlideInMenu}
+                onOpen={() => setMenuOpen(true)}
+                onClose={() => setMenuOpen(false)}
                 style={[
                   styles.filterButtonContainer,
                   {
@@ -263,7 +289,9 @@ const search = () => {
                     },
                   }}>
                   <MenuOption>
-                    <Text style={{fontWeight: 'bold', marginBottom: 10}}>Filter Questions</Text>
+                    <Text style={{fontWeight: 'bold', marginBottom: 10}}>
+                      Filter Questions
+                    </Text>
                   </MenuOption>
 
                   <Controller
@@ -333,12 +361,15 @@ const search = () => {
             </View>
 
             {/* Filter indicators if any filter is active */}
-            {(activeFilters.instituteId || activeFilters.courseId || activeFilters.subjectId) && (
+            {(activeFilters.instituteId ||
+              activeFilters.courseId ||
+              activeFilters.subjectId) && (
               <View style={styles.activeFilterIndicator}>
                 <View style={{flex: 1}}>
                   {activeFilters.instituteId && (
                     <Text style={{color: customColors.primary}}>
-                      Institute: {getFilterName('institute', activeFilters.instituteId)}
+                      Institute:{' '}
+                      {getFilterName('institute', activeFilters.instituteId)}
                     </Text>
                   )}
                   {activeFilters.courseId && (
@@ -348,7 +379,8 @@ const search = () => {
                   )}
                   {activeFilters.subjectId && (
                     <Text style={{color: customColors.primary}}>
-                      Subject: {getFilterName('subject', activeFilters.subjectId)}
+                      Subject:{' '}
+                      {getFilterName('subject', activeFilters.subjectId)}
                     </Text>
                   )}
                 </View>
@@ -366,7 +398,10 @@ const search = () => {
               </View>
             ) : questions.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Text>No questions found.</Text>
+                <Text>No results found.</Text>
+                <Text style={styles.emptySubText}>
+                  Try adjusting your search or filters.
+                </Text>
               </View>
             ) : (
               questions.map(question => (
@@ -434,6 +469,12 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 40,
+  },
+  emptySubText: {
+    marginTop: 8,
+    color: '#777',
+    textAlign: 'center',
   },
   activeFilterIndicator: {
     flexDirection: 'row',

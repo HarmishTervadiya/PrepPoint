@@ -1,14 +1,10 @@
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React from 'react';
 import {defaultStyle} from '@/themes/defaultStyles';
-import Label from '../text/Label';
 import {Typography} from '@/themes/typography';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
-import SubmitButton from '../SubmitButton';
-import {Question} from '@/types/question';
 import Profile from '@/assets/images/icons/user-icon.png';
-import {nanoid} from '@reduxjs/toolkit';
 import timeAgoFormatter from '@/utils/dateFormatter';
 
 type QuestionCardProps = {
@@ -39,6 +35,17 @@ export default function QuestionCard({
   onPress,
 }: QuestionCardProps) {
   const {customColors} = useTheme() as CustomTheme;
+  
+  // Make sure subject is actually a string to prevent type errors
+  const subjectName = typeof subject === 'string' ? subject : 
+                      subject || 'Unknown Subject';
+  
+  // Make sure reads is a number
+  const readsCount = typeof reads === 'number' ? reads : 0;
+  
+  // Make sure attachments is a number
+  const attachmentsCount = typeof attachments === 'number' ? attachments : 0;
+  
   return (
     <TouchableOpacity
       key={id}
@@ -46,7 +53,7 @@ export default function QuestionCard({
       style={styles.container}
       onPress={onPress}>
       <View style={defaultStyle.row}>
-        <Text style={styles.subjectBox}>{subject}</Text>
+        <Text style={styles.subjectBox}>{subjectName}</Text>
         <Text
           style={[
             styles.cardText,
@@ -86,19 +93,19 @@ export default function QuestionCard({
             Typography.cardDetails,
             {color: customColors.secondaryText},
           ]}>
-          {reads + ' Reads'}
+          {readsCount} Reads
         </Text>
       </View>
 
       {showFull && (
         <>
-          <View style={styles.divider}></View>
+          <View style={styles.divider} />
 
           <View style={defaultStyle.row}>
             <View>
-              {attachments && (
+              {attachmentsCount > 0 && (
                 <Text style={styles.fileBox}>
-                  {attachments} {attachments === 1 ? 'File' : 'Files'}
+                  {attachmentsCount} {attachmentsCount === 1 ? 'File' : 'Files'}
                 </Text>
               )}
             </View>
@@ -132,7 +139,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     padding: 15,
-    margin: 15,
+    margin: 12,
     gap: 10,
     borderRadius: 8,
   },
@@ -175,7 +182,6 @@ const styles = StyleSheet.create({
     height: 1,
     flex: 1,
     backgroundColor: '#e0e0e0',
-    // marginHorizontal: 8,
     marginVertical: 2,
   },
 });
