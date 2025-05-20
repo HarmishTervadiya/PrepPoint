@@ -40,6 +40,7 @@ import {getAllSubjects} from '@/redux-toolkit/features/uploadQuestion/subjectSli
 import SubmitButton from '@/components/SubmitButton';
 import {Controller, useForm} from 'react-hook-form';
 import {getAllCourses} from '@/redux-toolkit/features/content/courseSlice';
+import Label from '@/components/text/Label';
 
 const search = () => {
   const router = useRouter();
@@ -221,6 +222,14 @@ const search = () => {
             />
           }
           contentContainerStyle={[styles.container]}>
+                    <View style={styles.header}>
+            <Label
+              value="Search"
+              color={customColors.text}
+              textStyle={styles.headerTitle}
+            />
+          </View>
+
           <View style={styles.contentContainer}>
             <View style={[defaultStyle.row, {paddingHorizontal: 8, gap: 5}]}>
               <View

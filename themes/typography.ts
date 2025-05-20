@@ -22,8 +22,8 @@ export const Typography = StyleSheet.create({
     fontWeight: '500',
   },
   label: {
-    fontSize: 20,
-    fontWeight: 'semibold',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   inputErr: {
     fontSize: 12,
