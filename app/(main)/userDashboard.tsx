@@ -38,7 +38,7 @@ const dashboard = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            onRefresh={() => {}}
+            onRefresh={handleRefresh}
             refreshing={refreshLoading}
             colors={[customColors.primary]}
           />

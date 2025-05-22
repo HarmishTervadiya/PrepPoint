@@ -102,7 +102,7 @@ const getQuestionDetails = createAsyncThunk(
 
 const questionSlice = createSlice({
   initialState: initialState,
-  name: 'question',
+  name: 'questions',
   reducers: {
     clearQuestionDetails: state => {
       state.questionDetails = null;
