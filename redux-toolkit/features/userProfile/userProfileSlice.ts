@@ -15,6 +15,11 @@ const initialState: UserProfileState = {
       _id: '',
       instituteName: '',
       createAt: '',
+      instituteLogo: {
+        uri: '',
+        type: '',
+        size: 0
+      }
     },
     course: {
       _id: '',

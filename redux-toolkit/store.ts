@@ -6,6 +6,7 @@ import questionContentReducer from './features/content/questionSlice';
 import instituteReducer from './features/content/instituteSlice';
 import courseReducer from './features/content/courseSlice';
 import userProfileReducer from './features/userProfile/userProfileSlice';
+import contributorReducer from './features/content/contributorSlice'
 
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -18,6 +19,7 @@ const store = configureStore({
     userProfileReducer,
     instituteReducer,
     courseReducer,
+    contributorReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

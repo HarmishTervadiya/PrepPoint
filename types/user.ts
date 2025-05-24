@@ -21,3 +21,13 @@ export interface User {
   profilePic: Attachment;
   createdAt: string;
 }
+
+export interface Contributor {
+  owner: User;
+  totalReads: number;
+  questionCount: number;
+}
+
+export interface ContributorListState {
+  contributors: Contributor[]
+}
