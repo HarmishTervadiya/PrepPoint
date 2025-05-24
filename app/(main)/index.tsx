@@ -108,13 +108,26 @@ const Index = () => {
         <View style={[defaultStyle.row]}>
           <Text style={[Typography.heading, {fontFamily: ''}]}>PrepPoint</Text>
 
-          <TouchableOpacity onPress={() => dispatch(clearUserData())}>
+          {(user && user.id) ? (
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(clearUserData());
+              router.replace('/auth/userLogin')
+            }}>
             <Ionicons
               name="log-out-outline"
               size={28}
               color={customColors.primary}
             />
           </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+            onPress={() => {
+              router.replace('/auth/userLogin')
+            }}>
+              <Text style={[Typography.body]}>Login</Text>
+          </TouchableOpacity>
+          )}
         </View>
 
         <Label
@@ -246,7 +259,9 @@ const Index = () => {
                   <Text style={styles.contributorName}>
                     {item.owner.username}
                   </Text>
-                  <Text style={styles.contributorRole}>Reads: {item.totalReads}</Text>
+                  <Text style={styles.contributorRole}>
+                    Reads: {item.totalReads}
+                  </Text>
                 </View>
               </TouchableOpacity>
             )}

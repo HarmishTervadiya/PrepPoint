@@ -9,6 +9,7 @@ interface AuthState {
   user: {
     id: string;
     name: string;
+    username: string;
     email: string;
     profilePic: {
       uri: string;
@@ -28,7 +29,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}},
+  user: {id: '', username: '', name: '', email: '', profilePic: {uri: '', publicId: ''}},
   isLoggedIn: false,
   loading: false,
   error: null,
@@ -247,7 +248,7 @@ export const authSlice = createSlice({
       };
     },
     logoutUser: state => {
-      state.user = {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
+      state.user = {id: '', username: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
       state.isLoggedIn = false;
     },
   },
@@ -262,6 +263,7 @@ export const authSlice = createSlice({
         state.user = {
           id: user._id,
           name: user.name,
+          username: user.username,
           email: user.email,
           profilePic: user.profilePic,
         };
@@ -273,7 +275,7 @@ export const authSlice = createSlice({
         );
       })
       .addCase(authenticateUser.rejected, state => {
-        state.user = {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
+        state.user = {id: '', name: '', username: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -287,12 +289,13 @@ export const authSlice = createSlice({
           id: action.payload._id,
           email: action.payload.email,
           name: action.payload.name,
+          username: action.payload.username,
           profilePic: action.payload.profilePic,
         };
         state.isLoggedIn = true;
       })
       .addCase(signupUser.rejected, state => {
-        state.user = {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
+        state.user = {id: '', name: '', username: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -302,13 +305,14 @@ export const authSlice = createSlice({
         state.user = {
           id: action.payload._id,
           name: action.payload.name,
+          username: action.payload.username,
           email: action.payload.email,
           profilePic: action.payload.profilePic,
         };
         state.isLoggedIn = true;
       })
       .addCase(getUserDetails.rejected, state => {
-        state.user = {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
+        state.user = {id: '', username: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       });
 
@@ -369,7 +373,7 @@ export const authSlice = createSlice({
     // clear user data reducers
     builder
       .addCase(clearUserData.fulfilled, (state, action) => {
-        state.user = {id: '', name: '', email: '', profilePic: {uri: '', publicId: ''}};
+        state.user = {id: '', name: '', username: '', email: '', profilePic: {uri: '', publicId: ''}};
         state.isLoggedIn = false;
       })
       .addCase(clearUserData.rejected, (state, action) => {

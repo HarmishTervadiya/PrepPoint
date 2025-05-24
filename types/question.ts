@@ -36,3 +36,21 @@ export interface Question {
   reads: number;
   date: string
 }; 
+
+export interface Analytics {
+  totalReads: number,
+  totalQuestions: number,
+  totalEarnings: number,
+  availableBalance: number,
+  recentActivity: Question[],
+  withdrawalHistory: WithdrawalRequest[],
+  error: string | null
+}
+
+export interface WithdrawalRequest {
+  studentId: string;
+  upiId: string;
+  amount: string;
+  status: string;
+  createdAt: string;
+}

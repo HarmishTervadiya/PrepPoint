@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
@@ -20,14 +20,31 @@ import {Typography} from '@/themes/typography';
 import AnalyticsCard from '@/components/cards/AnalyticsCard';
 import TextInputField from '@/components/input/TextInputField';
 import SubmitButton from '@/components/SubmitButton';
+import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
+import {fetchAnalytics} from '@/redux-toolkit/features/analytics/analyticsSlice';
 
 const dashboard = () => {
   const {customColors} = useTheme() as CustomTheme;
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const {
+    totalReads,
+    totalQuestions,
+    totalEarnings,
+    availableBalance,
+    recentActivity,
+    withdrawalHistory,
+    error,
+  } = useAppSelector(state => state.analyticsReducer);
+  const {user} = useAppSelector(state => state.authReducer);
+
+  useEffect(() => {
+    dispatch(fetchAnalytics(user.id));
+  }, [dispatch, user.id]);
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);
-
+    dispatch(fetchAnalytics(user.id));
     setTimeout(() => {
       setRefreshLoading(false);
     }, 1000);
@@ -55,9 +72,12 @@ const dashboard = () => {
         <View style={styles.profileCard}>
           <View style={[defaultStyle.row, styles.profileCardDetails]}>
             <View style={defaultStyle.row}>
-              <Image source={Profile} style={styles.userImage} />
+              <Image
+                source={{uri: user.profilePic.uri}}
+                style={styles.userImage}
+              />
               <Label
-                value={'Dummy@123'}
+                value={user.username}
                 color={customColors.text}
                 textStyle={{fontWeight: 'bold'}}
               />
@@ -92,11 +112,11 @@ const dashboard = () => {
               color={customColors.sectionLabel}
               textStyle={Typography.label}
             />
-            <Label
+            {/* <Label
               value={'Last 30 days'}
               color={customColors.sectionMiniLabel}
               textStyle={Typography.cardDetails}
-            />
+            /> */}
           </View>
 
           <View
@@ -106,8 +126,11 @@ const dashboard = () => {
               justifyContent: 'space-between',
               marginHorizontal: 10,
             }}>
-            <AnalyticsCard label="Total Views" value="550K" />
-            <AnalyticsCard label="Total Views" value="550K" />
+            <AnalyticsCard label="Total Reads" value={totalReads.toString()} />
+            <AnalyticsCard
+              label="Total Questions"
+              value={totalQuestions.toString()}
+            />
           </View>
           <View
             style={{
@@ -116,8 +139,14 @@ const dashboard = () => {
               justifyContent: 'space-between',
               marginHorizontal: 10,
             }}>
-            <AnalyticsCard label="Total Views" value="550K" />
-            <AnalyticsCard label="Total Views" value="550K" />
+            <AnalyticsCard
+              label="Total Earnings"
+              value={totalEarnings.toString()}
+            />
+            <AnalyticsCard
+              label="Available Balance"
+              value={availableBalance.toString()}
+            />
           </View>
 
           <View
@@ -148,25 +177,23 @@ const dashboard = () => {
                 textStyle={{fontWeight: '500'}}
               />
             </View>
-            {[2, 3, 5, 6].map(index => (
+            {recentActivity.map((question, index) => (
               <View style={[defaultStyle.row, styles.activityItem]} key={index}>
                 <View style={[{width: '80%'}]}>
                   <Label
-                    value={
-                      'QuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestionQuestion'
-                    }
+                    value={question.title}
                     color={customColors.text}
                     textStyle={{fontWeight: '500'}}
                   />
 
                   <Label
-                    value={'Javascript'}
+                    value={question.subject}
                     color={'#ADADAD'}
                     textStyle={{fontWeight: '500', marginTop: 6}}
                   />
                 </View>
                 <Label
-                  value={'500K'}
+                  value={question.reads.toString()}
                   color={'#9a9a9a'}
                   textStyle={{
                     fontWeight: '500',
@@ -199,7 +226,7 @@ const dashboard = () => {
               marginVertical: 10,
             }}>
             <Label
-              value={'Available Balance (₹500)'}
+              value={`Available Balance (₹${availableBalance})`}
               color={customColors.primary}
               textStyle={Typography.body}
             />
@@ -236,11 +263,11 @@ const dashboard = () => {
               textStyle={Typography.body}
             />
 
-            <TouchableOpacity style={styles.withdrawBtn} activeOpacity={.7}>
+            <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.7}>
               <Label
                 value={'Withdraw'}
                 color={customColors.btnText}
-                textStyle={{fontWeight: 'bold'}} 
+                textStyle={{fontWeight: 'bold'}}
               />
             </TouchableOpacity>
           </View>
@@ -357,6 +384,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 5,
     alignItems: 'center',
-    justifyContent: 'center'
-  }
+    justifyContent: 'center',
+  },
 });
