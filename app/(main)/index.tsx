@@ -20,7 +20,10 @@ import {
   getUserDetails,
 } from '@/redux-toolkit/features/auth/authSlice';
 import QuestionCard from '@/components/cards/QuestionCard';
-import {getAllQuestions} from '@/redux-toolkit/features/content/questionSlice';
+import {
+  getAllQuestions,
+  getTopQuestions,
+} from '@/redux-toolkit/features/content/questionSlice';
 import {defaultStyle} from '@/themes/defaultStyles';
 import {Typography} from '@/themes/typography';
 import {Ionicons} from '@expo/vector-icons';
@@ -30,18 +33,22 @@ import Label from '@/components/text/Label';
 import {Question} from '@/types/question';
 
 import InstituteIcon from '@/assets/images/icons/instituteDemoIcon.png';
+import {getAllInstitutes} from '@/redux-toolkit/features/content/instituteSlice';
+import {getTopContributors} from '@/redux-toolkit/features/content/contributorSlice';
 
 const Index = () => {
   const router = useRouter();
   const segments = useSegments(); // Monitor current route segments
   const dispatch = useAppDispatch();
   const {user, isLoggedIn} = useAppSelector(state => state.authReducer);
-  // const {questions} = useAppSelector(state => state.questionContentReducer);
   const {questions} = useAppSelector(state => state.questionContentReducer);
+  const {institutes} = useAppSelector(state => state.instituteReducer);
+  const {contributors} = useAppSelector(state => state.contributorReducer);
+
   const [isReady, setIsReady] = useState(false); // Track readiness of layout/router
   const [authChecked, setAuthChecked] = useState(false);
   const {customColors} = useTheme() as CustomTheme;
-  
+
   useEffect(() => {
     // Simulate a delay to ensure layout/rendering is complete (optional)
     const timeout = setTimeout(() => setIsReady(true), 0);
@@ -79,7 +86,9 @@ const Index = () => {
   }, [isReady, user, segments]);
 
   useEffect(() => {
-    dispatch(getAllQuestions());
+    dispatch(getTopQuestions());
+    dispatch(getAllInstitutes());
+    dispatch(getTopContributors());
   }, [dispatch]);
 
   // Return a loading indicator if root layout is not ready
@@ -90,84 +99,6 @@ const Index = () => {
       </SafeAreaView>
     );
   }
-
-  const questionsDummy: Question[] = [
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-    {
-      id: 'dfd',
-      owner: {username: '', profilePic: {uri: 'cc'}},
-      title: 'Hell',
-      subject: 'dffd',
-      marks: 5,
-      attachments: null,
-      content: '',
-      reads: 0,
-      date: '',
-    },
-  ];
-
-  const instituteData = [
-    {id: '1', name: 'Institute 1'},
-    {id: '2', name: 'Institute 2'},
-    {id: '3', name: 'Institute 3'},
-    {id: '4', name: 'Institute 4'},
-    {id: '5', name: 'Institute 5'},
-    {id: '6', name: 'Institute 6'},
-  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -205,35 +136,37 @@ const Index = () => {
         />
 
         {/* Questions List */}
-        <FlatList
-          style={{maxHeight: 180}}
-          data={questionsDummy}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({item, index}) => (
-            <View style={{width: 280}}>
-              <QuestionCard
-                key={item.id}
-                username={item.owner.username || ''}
-                title={item.title || ''}
-                subject={item.subject}
-                marks={item.marks}
-                attachments={item.attachments?.length || 0}
-                reads={item.reads}
-                date={item.date}
-                showFull={false}
-                profilePic={item.owner.profilePic.uri}
-                onPress={() =>
-                  router.push({
-                    pathname: '/detail/questionDetails',
-                    params: {itemId: item.id},
-                  })
-                }
-                id={item.id}
-              />
-            </View>
-          )}
-        />
+        {questions && questions.length > 0 && (
+          <FlatList
+            style={{maxHeight: 180}}
+            data={questions.slice(0, 5)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({item, index}) => (
+              <View style={{width: 280}}>
+                <QuestionCard
+                  key={item.id}
+                  username={item.owner.username || ''}
+                  title={item.title || ''}
+                  subject={item.subject}
+                  marks={item.marks}
+                  attachments={item.attachments?.length || 0}
+                  reads={item.reads}
+                  date={item.date}
+                  showFull={false}
+                  profilePic={item.owner.profilePic.uri}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/detail/questionDetails',
+                      params: {itemId: item.id},
+                    })
+                  }
+                  id={item.id}
+                />
+              </View>
+            )}
+          />
+        )}
 
         {/* Explore Institutes Section */}
         <View style={[defaultStyle.row, {marginTop: 20, marginBottom: 15}]}>
@@ -253,30 +186,31 @@ const Index = () => {
         </View>
 
         {/* Institute Grid */}
-        <FlatList
-          data={instituteData}
-          numColumns={3}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-          columnWrapperStyle={styles.instituteRow}
-          renderItem={({item, index}) => (
-            <TouchableOpacity 
-              style={styles.instituteCard}
-              onPress={() => {
-                // Handle institute press
-              }}
-            >
-              <View style={styles.instituteIconContainer}>
-                <Image
-                  source={InstituteIcon}
-                  style={styles.instituteIcon}
-                  resizeMode="contain"
-                />
-              </View>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id}
-        />
+        {institutes && institutes.length > 0 && (
+          <FlatList
+            data={institutes.slice(0, 6)}
+            numColumns={3}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            columnWrapperStyle={styles.instituteRow}
+            renderItem={({item, index}) => (
+              <TouchableOpacity
+                style={styles.instituteCard}
+                onPress={() => {
+                  // Handle institute press
+                }}>
+                <View style={styles.instituteIconContainer}>
+                  <Image
+                    source={{uri: item.instituteLogo.uri}}
+                    style={styles.instituteIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+              </TouchableOpacity>
+            )}
+            keyExtractor={item => item._id}
+          />
+        )}
 
         {/* Top Contributors Section */}
         <View style={[defaultStyle.row, {marginTop: 20, marginBottom: 15}]}>
@@ -296,28 +230,29 @@ const Index = () => {
         </View>
 
         {/* Top Contributors List */}
-        <FlatList
-          data={[
-            {id: '1', name: 'Heet@1234', role: 'Book Seller', avatar: 'H', color: '#20b2aa'},
-            {id: '2', name: 'John@567', role: 'Teacher', avatar: 'J', color: '#ff6b6b'},
-            {id: '3', name: 'Sarah@890', role: 'Student', avatar: 'S', color: '#4ecdc4'},
-          ]}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-          renderItem={({item}) => (
-            <TouchableOpacity style={styles.contributorItem}>
-              <View style={[styles.contributorAvatar, {backgroundColor: item.color}]}>
-                <Text style={styles.contributorAvatarText}>{item.avatar}</Text>
-              </View>
-              <View style={styles.contributorInfo}>
-                <Text style={styles.contributorName}>{item.name}</Text>
-                <Text style={styles.contributorRole}>{item.role}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id}
-        />
-
+        {contributors && contributors.length > 0 && (
+          <FlatList
+            data={contributors}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            renderItem={({item}) => (
+              <TouchableOpacity style={styles.contributorItem}>
+                <Image
+                  source={{uri: item.owner.profilePic.uri}}
+                  style={styles.contributorAvatar}
+                  resizeMode="contain"
+                />
+                <View style={styles.contributorInfo}>
+                  <Text style={styles.contributorName}>
+                    {item.owner.username}
+                  </Text>
+                  <Text style={styles.contributorRole}>Reads: {item.totalReads}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            keyExtractor={item => item.owner._id}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
