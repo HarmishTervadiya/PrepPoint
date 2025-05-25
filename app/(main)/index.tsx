@@ -131,7 +131,7 @@ const Index = () => {
         </View>
 
         <Label
-          value={`Hey, ${user.name}`}
+          value={`Hey, ${user.name || ''}`}
           color={customColors.text}
           textStyle={{fontSize: 16, fontWeight: 'bold', marginTop: 20}}
         />
@@ -189,7 +189,7 @@ const Index = () => {
             textStyle={Typography.label}
           />
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={()=> {router.push('/detail/instituteList')}}>
             <Label
               value={`View All`}
               color={customColors.primary}

@@ -48,6 +48,7 @@ export interface Analytics {
 }
 
 export interface WithdrawalRequest {
+  _id: string;
   studentId: string;
   upiId: string;
   amount: string;

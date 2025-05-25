@@ -15,17 +15,33 @@ import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
 import Label from '@/components/text/Label';
 import {defaultStyle} from '@/themes/defaultStyles';
-import Profile from '@/assets/images/icons/user-icon.png';
 import {Typography} from '@/themes/typography';
 import AnalyticsCard from '@/components/cards/AnalyticsCard';
-import TextInputField from '@/components/input/TextInputField';
-import SubmitButton from '@/components/SubmitButton';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
-import {fetchAnalytics} from '@/redux-toolkit/features/analytics/analyticsSlice';
+import {
+  createWithdrawalRequest,
+  fetchAnalytics,
+} from '@/redux-toolkit/features/analytics/analyticsSlice';
+import timeAgoFormatter from '@/utils/dateFormatter';
+import {Controller, useForm} from 'react-hook-form';
+import {Alert} from 'react-native';
 
 const dashboard = () => {
   const {customColors} = useTheme() as CustomTheme;
   const [refreshLoading, setRefreshLoading] = useState(false);
+  const [selectedSection, setSelectedSection] = useState('Analytics');
+
+  const {
+    control,
+    handleSubmit,
+    formState: {errors},
+  } = useForm({
+    defaultValues: {
+      amount: '',
+      upiId: '',
+    },
+  });
+
   const dispatch = useAppDispatch();
   const {
     totalReads,
@@ -49,6 +65,28 @@ const dashboard = () => {
       setRefreshLoading(false);
     }, 1000);
   }, []);
+
+  const addWithdrawalRequest = async (data: any) => {
+    const response = await dispatch(
+      createWithdrawalRequest({
+        _id: '',
+        studentId: user.id,
+        upiId: data.upiId,
+        amount: data.amount,
+        status: '',
+        createdAt: '',
+      }),
+    );
+
+    if (response.meta.requestStatus === 'fulfilled') {
+      Alert.alert('Success', 'Request added successfully');
+    }
+
+    if (response.meta.requestStatus === 'rejected') {
+      Alert.alert('Error', response.payload);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -83,9 +121,19 @@ const dashboard = () => {
               />
             </View>
 
-            <TouchableOpacity style={styles.sectionBtn} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={[
+                styles.sectionBtn,
+                {
+                  backgroundColor:
+                    selectedSection === 'Earnings'
+                      ? '#04d104'
+                      : customColors.primary,
+                },
+              ]}
+              activeOpacity={0.7}>
               <Label
-                value={'Earnings'}
+                value={selectedSection}
                 color={'#FFF'}
                 textStyle={{fontSize: 12, fontWeight: '500'}}
               />
@@ -97,181 +145,358 @@ const dashboard = () => {
             textStyle={{fontWeight: 'bold', marginTop: 5}}
           />
         </View>
-        {/* Activity Section */}
-        <View style={{}}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginHorizontal: 15,
-              marginVertical: 5,
-            }}>
-            <Label
-              value={'Analytics'}
-              color={customColors.sectionLabel}
-              textStyle={Typography.label}
-            />
-            {/* <Label
-              value={'Last 30 days'}
-              color={customColors.sectionMiniLabel}
-              textStyle={Typography.cardDetails}
-            /> */}
-          </View>
 
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              marginHorizontal: 10,
+        <View style={defaultStyle.row}>
+          <TouchableOpacity
+            style={[
+              styles.profileCard,
+              {
+                flex: 1,
+                alignItems: 'center',
+                backgroundColor:
+                  selectedSection == 'Analytics'
+                    ? customColors.primary
+                    : '#FFF',
+              },
+            ]}
+            activeOpacity={0.8}
+            onPress={() => {
+              setSelectedSection('Analytics');
             }}>
-            <AnalyticsCard label="Total Reads" value={totalReads.toString()} />
-            <AnalyticsCard
-              label="Total Questions"
-              value={totalQuestions.toString()}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              marginHorizontal: 10,
+            <Text
+              style={{
+                color:
+                  selectedSection == 'Analytics' ? '#FFF' : customColors.text,
+              }}>
+              Analytics
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.profileCard,
+              {
+                flex: 1,
+                alignItems: 'center',
+                backgroundColor:
+                  selectedSection == 'Earnings' ? customColors.primary : '#FFF',
+              },
+            ]}
+            activeOpacity={0.8}
+            onPress={() => {
+              setSelectedSection('Earnings');
             }}>
-            <AnalyticsCard
-              label="Total Earnings"
-              value={totalEarnings.toString()}
-            />
-            <AnalyticsCard
-              label="Available Balance"
-              value={availableBalance.toString()}
-            />
-          </View>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginHorizontal: 15,
-              marginVertical: 10,
-            }}>
-            <Label
-              value={'Recent Activity'}
-              color={customColors.sectionLabel}
-              textStyle={Typography.label}
-            />
-          </View>
-
-          <View style={styles.activityCard}>
-            <View style={[defaultStyle.row, styles.activityHeader]}>
-              <Label
-                value={'Question'}
-                color={'#9a9a9a'}
-                textStyle={{fontWeight: '500'}}
-              />
-              <Label
-                value={'Reads'}
-                color={'#9a9a9a'}
-                textStyle={{fontWeight: '500'}}
-              />
-            </View>
-            {recentActivity.map((question, index) => (
-              <View style={[defaultStyle.row, styles.activityItem]} key={index}>
-                <View style={[{width: '80%'}]}>
-                  <Label
-                    value={question.title}
-                    color={customColors.text}
-                    textStyle={{fontWeight: '500'}}
-                  />
-
-                  <Label
-                    value={question.subject}
-                    color={'#ADADAD'}
-                    textStyle={{fontWeight: '500', marginTop: 6}}
-                  />
-                </View>
-                <Label
-                  value={question.reads.toString()}
-                  color={'#9a9a9a'}
-                  textStyle={{
-                    fontWeight: '500',
-                    fontSize: 12,
-                    textAlign: 'center',
-                    width: '15%',
-                  }}
-                />
-              </View>
-            ))}
-          </View>
+            <Text
+              style={{
+                color:
+                  selectedSection == 'Earnings' ? '#FFF' : customColors.text,
+              }}>
+              Earnings
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Earning Section */}
+        {selectedSection === 'Analytics' ? (
+          /* Activity Section */
+          <View style={{}}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginHorizontal: 15,
+                marginVertical: 5,
+              }}>
+              <Label
+                value={'Analytics'}
+                color={customColors.sectionLabel}
+                textStyle={Typography.label}
+              />
+              {/* <Label
+                      value={'Last 30 days'}
+                      color={customColors.sectionMiniLabel}
+                      textStyle={Typography.cardDetails}
+                    /> */}
+            </View>
 
-        <View
-          style={{
-            marginLeft: 15,
-            marginVertical: 10,
-          }}>
-          <Label
-            value={'Withdraw your earnings'}
-            color={customColors.sectionLabel}
-            textStyle={Typography.label}
-          />
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                marginHorizontal: 10,
+              }}>
+              <AnalyticsCard
+                label="Total Reads"
+                value={totalReads.toString()}
+              />
+              <AnalyticsCard
+                label="Total Questions"
+                value={totalQuestions.toString()}
+              />
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                marginHorizontal: 10,
+              }}>
+              <AnalyticsCard
+                label="Total Earnings"
+                value={totalEarnings.toString()}
+              />
+              <AnalyticsCard
+                label="Available Balance"
+                value={availableBalance.toString()}
+              />
+            </View>
 
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginHorizontal: 15,
+                marginVertical: 10,
+              }}>
+              <Label
+                value={'Recent Activity'}
+                color={customColors.sectionLabel}
+                textStyle={Typography.label}
+              />
+            </View>
+
+            <View style={styles.activityCard}>
+              <View style={[defaultStyle.row, styles.activityHeader]}>
+                <Label
+                  value={'Question'}
+                  color={'#9a9a9a'}
+                  textStyle={{fontWeight: '500'}}
+                />
+                <Label
+                  value={'Reads'}
+                  color={'#9a9a9a'}
+                  textStyle={{fontWeight: '500'}}
+                />
+              </View>
+              {recentActivity.map((question, index) => (
+                <View
+                  style={[defaultStyle.row, styles.activityItem]}
+                  key={index}>
+                  <View style={[{width: '80%'}]}>
+                    <Label
+                      value={question.title}
+                      color={customColors.text}
+                      textStyle={{fontWeight: '500'}}
+                    />
+
+                    <Label
+                      value={question.subject}
+                      color={'#ADADAD'}
+                      textStyle={{fontWeight: '500', marginTop: 6}}
+                    />
+                  </View>
+                  <Label
+                    value={question.reads.toString()}
+                    color={'#9a9a9a'}
+                    textStyle={{
+                      fontWeight: '500',
+                      fontSize: 12,
+                      textAlign: 'center',
+                      width: '15%',
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          /* Earning Section */
           <View
             style={{
-              marginHorizontal: 15,
+              marginLeft: 15,
               marginVertical: 10,
             }}>
             <Label
-              value={`Available Balance (₹${availableBalance})`}
-              color={customColors.primary}
-              textStyle={Typography.body}
+              value={'Withdraw your earnings'}
+              color={customColors.sectionLabel}
+              textStyle={Typography.label}
             />
 
             <View
-              style={[
-                defaultStyle.row,
-                {
-                  gap: 5,
-                  height: 45,
-                  marginVertical: 15,
-                  justifyContent: 'space-between',
-                },
-              ]}>
-              <TextInput
-                placeholder="Enter Your UPI ID"
-                style={[
-                  styles.withdrawalInput,
-                  {width: '90%', textAlign: 'left'},
-                ]}
+              style={{
+                marginHorizontal: 15,
+                marginVertical: 15,
+              }}>
+              <Label
+                value={`Available Balance (₹${availableBalance})`}
+                color={customColors.primary}
+                textStyle={Typography.body}
               />
-              <TextInput
-                placeholder="0"
+
+              <View
                 style={[
-                  styles.withdrawalInput,
-                  {width: 45, textAlign: 'center'},
-                ]}
+                  defaultStyle.row,
+                  {
+                    gap: 5,
+                    height: 45,
+                    marginVertical: 15,
+                    justifyContent: 'space-between',
+                  },
+                ]}>
+                <Controller
+                  control={control}
+                  rules={{required: 'UPI ID is required'}}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      placeholder="Enter Your UPI ID"
+                      style={[
+                        styles.withdrawalInput,
+                        {width: '80%', textAlign: 'left'},
+                      ]}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                    />
+                  )}
+                  name="upiId"
+                />
+
+                <Controller
+                  control={control}
+                  name="amount"
+                  rules={{
+                    required: 'Amount is required',
+                    validate: value => {
+                      if (parseFloat(value) > availableBalance) {
+                        return 'Amount exceeds available balance';
+                      }
+
+                      if (parseFloat(value) < 0) {
+                        return 'Amount must be greater than 90';
+                      }
+                      return true;
+                    },
+                  }}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      placeholder="0"
+                      style={[
+                        styles.withdrawalInput,
+                        {width: 45, textAlign: 'center'},
+                      ]}
+                      value={value?.toString()}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      keyboardType="decimal-pad"
+                    />
+                  )}
+                />
+              </View>
+
+              {errors.upiId && (
+                <Label
+                  value={errors.upiId.message || ''}
+                  color={'#FF0000'}
+                  textStyle={Typography.inputErr}
+                />
+              )}
+
+              {errors.amount && (
+                <Label
+                  value={errors.amount.message || ''}
+                  color={'#FF0000'}
+                  textStyle={Typography.inputErr}
+                />
+              )}
+
+              <Label
+                value={'Minimum withdrawal amount is ₹90'}
+                color={'#ADADAD'}
+                textStyle={Typography.body}
               />
+
+              <TouchableOpacity
+                style={styles.withdrawBtn}
+                activeOpacity={0.7}
+                onPress={handleSubmit(addWithdrawalRequest)}>
+                <Label
+                  value={'Withdraw'}
+                  color={customColors.btnText}
+                  textStyle={{fontWeight: 'bold'}}
+                />
+              </TouchableOpacity>
             </View>
 
             <Label
-              value={'Minimum withdrawal amount is ₹90'}
-              color={'#ADADAD'}
-              textStyle={Typography.body}
+              value={'History'}
+              color={customColors.sectionLabel}
+              textStyle={Typography.label}
             />
+            <View style={styles.activityCard}>
+              <View style={[defaultStyle.row, styles.activityHeader]}>
+                <Label
+                  value={'Withdrawal Request'}
+                  color={'#9a9a9a'}
+                  textStyle={{fontWeight: '500'}}
+                />
+              </View>
 
-            <TouchableOpacity style={styles.withdrawBtn} activeOpacity={0.7}>
-              <Label
-                value={'Withdraw'}
-                color={customColors.btnText}
-                textStyle={{fontWeight: 'bold'}}
+              <FlatList
+                data={withdrawalHistory.toReversed()}
+                scrollEnabled={false}
+                keyExtractor={request => request._id}
+                renderItem={({item, index}) => (
+                  <View
+                    style={[defaultStyle.row, styles.activityItem]}
+                    key={index}>
+                    <View style={[{width: '65%'}]}>
+                      <Label
+                        value={item.upiId}
+                        color={customColors.text}
+                        textStyle={{fontWeight: '500'}}
+                      />
+
+                      <Label
+                        value={timeAgoFormatter(item.createdAt)}
+                        color={'#ADADAD'}
+                        textStyle={{fontWeight: '500', marginTop: 6}}
+                      />
+                    </View>
+                    <Label
+                      value={item.amount.toString()}
+                      color={'#9a9a9a'}
+                      textStyle={{
+                        fontWeight: '500',
+                        fontSize: 12,
+                        textAlign: 'center',
+                        width: '15%',
+                      }}
+                    />
+
+                    <Label
+                      value={item.status}
+                      color={
+                        item.status === 'Pending'
+                          ? customColors.primary
+                          : item.status === 'Rejected'
+                          ? '#FF0000'
+                          : '#00FF00'
+                      }
+                      textStyle={{
+                        fontWeight: '500',
+                        fontSize: 12,
+                        textAlign: 'center',
+                        width: '15%',
+                      }}
+                    />
+                  </View>
+                )}
               />
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -327,7 +552,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   sectionBtn: {
-    backgroundColor: '#04d104',
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 20,

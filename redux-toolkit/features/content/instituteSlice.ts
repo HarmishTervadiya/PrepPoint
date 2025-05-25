@@ -24,6 +24,22 @@ const getAllInstitutes = createAsyncThunk(
   },
 );
 
+const searchInstitute = createAsyncThunk(
+  '/institute/searchInstitute',
+  async (searchText:string, thunkAPI) => {
+    try {
+      const queryParams = new URLSearchParams()
+      queryParams.set('searchText', searchText)
+
+      const response = await api.get(`/institute/searchInstitute/?${queryParams.toString()}`);
+      
+      return response.data;
+    } catch (institutesError) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(institutesError));
+    }
+  },
+);
+
 const instituteSlice = createSlice({
   initialState: initialState,
   name: 'institute',
@@ -49,9 +65,24 @@ const instituteSlice = createSlice({
         state.institutesLoading = false;
         state.institutesError = action.payload as string;
       });
+
+      builder
+      .addCase(searchInstitute.fulfilled, (state, action) => {
+        state.institutesLoading = false;
+        state.institutesError = null;
+        state.institutes = action.payload;
+      })
+      .addCase(searchInstitute.pending, (state, action) => {
+        state.institutesLoading = true;
+        state.institutesError = null;
+      })
+      .addCase(searchInstitute.rejected, (state, action) => {
+        state.institutesLoading = false;
+        state.institutesError = action.payload as string;
+      });
   },
 });
 
-export {getAllInstitutes};
+export {getAllInstitutes, searchInstitute};
 export const {clearinstituteDetails} = instituteSlice.actions;
 export default instituteSlice.reducer;

@@ -1,6 +1,6 @@
 import api from '@/api';
-import { Attachment } from '@/types/auth';
-import { Analytics } from '@/types/question';
+import {Attachment} from '@/types/auth';
+import {Analytics, WithdrawalRequest} from '@/types/question';
 import {apiErrorMessageHandler} from '@/utils/apiMessageHandler';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 
@@ -11,7 +11,7 @@ const initialState: Analytics = {
   availableBalance: 0,
   recentActivity: [],
   withdrawalHistory: [],
-  error: ''
+  error: '',
 };
 
 const fetchAnalytics = createAsyncThunk(
@@ -35,6 +35,22 @@ const fetchAnalytics = createAsyncThunk(
   },
 );
 
+const createWithdrawalRequest = createAsyncThunk(
+  'createWithdrawalRequest',
+  async ({upiId, amount, studentId}: WithdrawalRequest, thunkAPI) => {
+    try {
+      const response = await api.post('/withdraw/checkout-request', {
+        upiId,
+        amount,
+        studentId,
+      });
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+    }
+  },
+);
+
 const analyticsSlice = createSlice({
   name: 'analytics',
   initialState,
@@ -46,25 +62,37 @@ const analyticsSlice = createSlice({
       state.totalEarnings = action.payload.analytics.totalEarnings;
       state.availableBalance = action.payload.analytics.availableBalance;
       state.withdrawalHistory = action.payload.withdrawalHistory;
-      state.recentActivity = action.payload.recentActivity.map((question: any) => ({
-        id: question._id,
-        owner: question.owner,
-        title: question.title,
-        subject: question.subject.subjectName,
-        marks: question.marks,
-        attachments: question.attachments as Attachment[],
-        content: question.content,
-        reads: question.reads,
-        date: question.createdAt,
-      }));
+      state.recentActivity = action.payload.recentActivity.map(
+        (question: any) => ({
+          id: question._id,
+          owner: question.owner,
+          title: question.title,
+          subject: question.subject.subjectName,
+          marks: question.marks,
+          attachments: question.attachments as Attachment[],
+          content: question.content,
+          reads: question.reads,
+          date: question.createdAt,
+        }),
+      );
     });
-
 
     builder.addCase(fetchAnalytics.rejected, (state, action) => {
       state.error = action.payload as string;
     });
+
+    builder.addCase(createWithdrawalRequest.fulfilled, (state, action)=> {
+      state.error = ''
+      console.log(action.payload)
+      state.withdrawalHistory.push(action.payload)
+      state.availableBalance-=parseFloat(action.payload.amount)
+    })
+    
+    .addCase(createWithdrawalRequest.rejected, (state, action)=> {
+      state.error = action.payload as string
+    })
   },
 });
 
-export {fetchAnalytics}
-export default analyticsSlice.reducer
+export {fetchAnalytics, createWithdrawalRequest};
+export default analyticsSlice.reducer;
