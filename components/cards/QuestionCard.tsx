@@ -1,4 +1,4 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Image, StyleSheet, Text, TouchableOpacity, View, Platform} from 'react-native';
 import React from 'react';
 import {defaultStyle} from '@/themes/defaultStyles';
 import {Typography} from '@/themes/typography';
@@ -35,24 +35,24 @@ export default function QuestionCard({
   onPress,
 }: QuestionCardProps) {
   const {customColors} = useTheme() as CustomTheme;
-  
+
   // Make sure subject is actually a string to prevent type errors
-  const subjectName = typeof subject === 'string' ? subject : 
-                      subject || 'Unknown Subject';
-  
+  const subjectName =
+    typeof subject === 'string' ? subject : subject || 'Unknown Subject';
+
   // Make sure reads is a number
   const readsCount = typeof reads === 'number' ? reads : 0;
-  
+
   // Make sure attachments is a number
   const attachmentsCount = typeof attachments === 'number' ? attachments : 0;
-  
+
   return (
     <TouchableOpacity
       key={id}
       activeOpacity={0.9}
       style={styles.container}
       onPress={onPress}>
-      <View style={defaultStyle.row}>
+      <View style={[defaultStyle.row, {gap: 6}]}>
         <Text style={styles.subjectBox}>{subjectName}</Text>
         <Text
           style={[
@@ -93,6 +93,14 @@ export default function QuestionCard({
             Typography.cardDetails,
             {color: customColors.secondaryText},
           ]}>
+          {marks} Mark
+        </Text>
+        <Text
+          style={[
+            styles.cardText,
+            Typography.cardDetails,
+            {color: customColors.secondaryText},
+          ]}>
           {readsCount} Reads
         </Text>
       </View>
@@ -109,7 +117,7 @@ export default function QuestionCard({
                 </Text>
               )}
             </View>
-            
+
             <TouchableOpacity
               activeOpacity={0.8}
               style={[
@@ -131,17 +139,28 @@ export default function QuestionCard({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
-    shadowOffset: {
-      height: 2,
-      width: 0,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: 8,
     padding: 15,
     margin: 12,
     gap: 10,
-    borderRadius: 8,
+    // Platform-specific shadow handling
+    ...Platform.select({
+      ios: {
+        shadowOffset: {
+          height: 2,
+          width: 0,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        shadowColor: '#000',
+      },
+      android: {
+        elevation: 3, // Reduced from 2 to 3 for better consistency
+      },
+    }),
+    // Alternative: Use border instead of elevation/shadow
+    // borderWidth: 1,
+    // borderColor: '#E5E5E5',
   },
   profilePic: {
     height: 30,
@@ -172,6 +191,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 13,
+    flexShrink: 1,
   },
   detailButton: {
     paddingVertical: 8,

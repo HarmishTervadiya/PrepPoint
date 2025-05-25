@@ -117,6 +117,7 @@ const UploadQuestion = () => {
 
     data.answer = content;
     data.attachments = attachments;
+  
     const response = await dispatch(uploadQuestion(data));
 
     if (response.meta.requestStatus === 'fulfilled') {

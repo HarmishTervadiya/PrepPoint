@@ -36,7 +36,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : LightTheme}>
         <MenuProvider>
-          <Stack>
+          <Stack screenOptions={{animation: 'none'}}>
             <Stack.Screen
               name="auth/userVerification"
               options={{headerShown: false}}
@@ -69,8 +69,14 @@ export default function RootLayout() {
               name="detail/fileViewer"
               options={{headerShown: false}}
             />
+
             <Stack.Screen
               name="detail/questionDetails"
+              options={{headerShown: false}}
+            />
+
+            <Stack.Screen
+              name="detail/instituteList"
               options={{headerShown: false}}
             />
 

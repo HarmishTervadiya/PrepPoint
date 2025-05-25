@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {defaultStyle} from '@/themes/defaultStyles';
 import Collapsible from 'react-native-collapsible';
@@ -21,7 +21,10 @@ import {Typography} from '@/themes/typography';
 import {Image} from 'react-native';
 import {RichText, useEditorBridge} from '@10play/tentap-editor';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
-import {getQuestionDetails} from '@/redux-toolkit/features/content/questionSlice';
+import {
+  getQuestionDetails,
+  increaseReadCount,
+} from '@/redux-toolkit/features/content/questionSlice';
 
 import ArrowIcon from '@/assets/images/icons/colored-down-arrow.png';
 import Profile from '@/assets/images/icons/user-icon.png';
@@ -50,10 +53,22 @@ const QuestionDetails = () => {
     editable: false,
     initialContent: questionDetails?.content || 'Loading content...',
   });
+  const hasIncreasedReadCount = useRef(false);
 
   useEffect(() => {
     if (questionId) {
       fetchQuestionDetails();
+
+      const timeoutId = setTimeout(() => {
+        if (!hasIncreasedReadCount.current) {
+          dispatch(increaseReadCount(questionId as string));
+          hasIncreasedReadCount.current = true;
+        }
+      }, 150000);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [questionId]);
 
@@ -96,7 +111,8 @@ const QuestionDetails = () => {
 
   if (loading) {
     return (
-      <SafeAreaView>
+      <SafeAreaView
+        style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
         <ActivityIndicator color={customColors.primary} size={'large'} />
       </SafeAreaView>
     );
@@ -138,10 +154,7 @@ const QuestionDetails = () => {
               activeOpacity={0.7}>
               <View style={[styles.titleContainer]}>
                 <Label
-                  value={
-                    questionDetails?.title ||
-                    'PSEE programs of Javascript - 2024'
-                  }
+                  value={questionDetails?.title || 'Loading'}
                   color={customColors.text}
                   textStyle={Typography.title}
                 />
@@ -160,20 +173,36 @@ const QuestionDetails = () => {
             <Collapsible
               collapsed={IsCollapsed}
               style={styles.collapsibleContainer}>
-              <View style={styles.authorContainer}>
-                {questionDetails?.owner?.profilePic.uri ? (
-                  <Image source={{ uri: questionDetails.owner.profilePic.uri }} style={styles.profilePic} />
-                ) : (
-                  <Image source={Profile} style={styles.profilePic} />
-                )}
-                <Text
-                  style={[
-                    styles.cardText,
-                    Typography.cardDetails,
-                    {color: customColors.secondaryText},
-                  ]}>
-                  {questionDetails?.owner?.username || ''}
-                </Text>
+              <View style={defaultStyle.row}>
+                <View style={styles.authorContainer}>
+                  {questionDetails?.owner?.profilePic.uri ? (
+                    <Image
+                      source={{uri: questionDetails.owner.profilePic.uri}}
+                      style={styles.profilePic}
+                    />
+                  ) : (
+                    <Image source={Profile} style={styles.profilePic} />
+                  )}
+                  <Text
+                    style={[
+                      styles.cardText,
+                      Typography.cardDetails,
+                      {color: customColors.text},
+                    ]}>
+                    {questionDetails?.owner?.username || ''}
+                  </Text>
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.cardText,
+                      Typography.cardDetails,
+                      {color: customColors.secondaryText},
+                    ]}>
+                    {questionDetails?.marks
+                      ? `${questionDetails.marks} Marks`
+                      : ''}
+                  </Text>
               </View>
 
               <View style={styles.metadataContainer}>
@@ -297,6 +326,9 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     transform: [{rotate: '180deg'}],
+    padding: 4,
+    borderWidth: 0.2,
+    borderRadius: 6,
   },
   arrowIconRotated: {
     transform: [{rotate: '0deg'}],
@@ -332,9 +364,11 @@ const styles = StyleSheet.create({
     color: '#1877F2',
     fontWeight: 'bold',
     fontSize: 13,
+    flexShrink: 1,
   },
   cardText: {
     fontSize: 13,
+    flexShrink: 1,
   },
   attachmentsContainer: {
     flexDirection: 'row',
