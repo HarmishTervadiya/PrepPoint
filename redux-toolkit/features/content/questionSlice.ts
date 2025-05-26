@@ -114,6 +114,22 @@ const increaseReadCount = createAsyncThunk(
   },
 );
 
+const deleteQuestion = createAsyncThunk(
+  '/question/deleteQuestion',
+  async (questionId: string, thunkAPI) => {
+    try {
+      const response = await api.delete(
+        `/question/delete/${questionId}`,
+      );
+
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(apiErrorMessageHandler(error));
+    }
+  },
+);
+
+
 const questionSlice = createSlice({
   initialState: initialState,
   name: 'questions',
@@ -235,9 +251,18 @@ const questionSlice = createSlice({
       .addCase(increaseReadCount.rejected, (state, action) => {
         console.log("Error incrementing read count", action.payload)
       });
+
+      builder
+      .addCase(deleteQuestion.fulfilled, (state, action)=> {
+        console.log(action.payload)
+        state.questions.filter(question => question.id !== action.payload)
+      })
+      .addCase(deleteQuestion.rejected, (state, action) => {
+        state.error=action.payload as string
+      });
   },
 });
 
-export {getAllQuestions, getQuestionDetails, getTopQuestions, searchQuestions, increaseReadCount};
+export {getAllQuestions, getQuestionDetails, getTopQuestions, searchQuestions, increaseReadCount, deleteQuestion};
 export const {clearQuestionDetails} = questionSlice.actions;
 export default questionSlice.reducer;

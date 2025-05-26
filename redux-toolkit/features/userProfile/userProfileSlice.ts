@@ -116,6 +116,9 @@ const userProfileSlice = createSlice({
         question.title.includes(action.payload),
       );
     },
+    deleteQuestionFromList: (state, action) => {
+      state.userQuestions = state.userQuestions.filter(quetion => quetion.id != action.payload)
+    } 
   },
   extraReducers: builder => {
     builder
@@ -159,5 +162,5 @@ const userProfileSlice = createSlice({
   },
 });
 
-export const {searchQuestion} = userProfileSlice.actions;
+export const {searchQuestion, deleteQuestionFromList} = userProfileSlice.actions;
 export default userProfileSlice.reducer;

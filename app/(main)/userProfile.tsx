@@ -32,12 +32,16 @@ import {
 } from 'react-native-popup-menu';
 import {Ionicons} from '@expo/vector-icons';
 import {
+  deleteQuestionFromList,
   getUserProfileDetails,
   searchQuestion,
 } from '@/redux-toolkit/features/userProfile/userProfileSlice';
 import {Question} from '@/types/question';
 import timeAgoFormatter from '@/utils/dateFormatter';
 import {useRouter} from 'expo-router';
+import {deleteQuestion} from '@/redux-toolkit/features/content/questionSlice';
+import {getUserDetails} from '@/redux-toolkit/features/auth/authSlice';
+import {getAuthData, saveAuthData} from '@/utils/authStorage';
 
 const UserProfile = () => {
   const router = useRouter();
@@ -56,17 +60,36 @@ const UserProfile = () => {
     console.log('Fetching user questions...');
   }, [dispatch]);
 
+  const refreshUserDetails = async () => {
+    try {
+      const auth = await getAuthData();
+      if (auth?.userId) {
+        const result = await dispatch(getUserDetails(auth.userId));
+        dispatch(getUserProfileDetails(auth.userId));
+        if (result.meta.requestStatus === 'rejected') {
+          // Alert.alert(
+          //   'Error',
+          //   'Something went wrong while fetching user details',
+          // );
+        }
+      }
+    } catch (error) {
+      console.error('Auth fetch error:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUserQuestions();
   }, [dispatch]);
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);
+    refreshUserDetails();
     fetchUserQuestions();
     setTimeout(() => {
       setRefreshLoading(false);
     }, 1000);
-  }, [fetchUserQuestions]);
+  }, []);
 
   const handleSearch = useCallback((text: string) => {
     setSearchValue(text);
@@ -80,13 +103,19 @@ const UserProfile = () => {
     });
   }, []);
 
-  const handleEditQuestion = useCallback(() => {
-    console.log('Edit question');
-  }, []);
+  const handleEditQuestion = (questionId: string) => {
+    router.push({
+      pathname: '/edit/questionEditor',
+      params: {questionId: questionId},
+    });
+  };
 
-  const handleDeleteQuestion = useCallback(() => {
-    console.log('Delete question');
-  }, []);
+  const handleDeleteQuestion = async (questionId: string) => {
+    const response = await dispatch(deleteQuestion(questionId));
+    if(response.meta.requestStatus === 'fulfilled'){
+      dispatch(deleteQuestionFromList(questionId))
+    }
+  };
 
   const renderQuestion = (question: Question) => (
     <TouchableOpacity
@@ -109,7 +138,9 @@ const UserProfile = () => {
               optionsContainer: styles.menuOptions,
             }}>
             <MenuOption
-              onSelect={handleEditQuestion}
+              onSelect={() => {
+                handleEditQuestion(question.id);
+              }}
               customStyles={{
                 optionWrapper: styles.menuOption,
               }}>
@@ -119,7 +150,9 @@ const UserProfile = () => {
               </View>
             </MenuOption>
             <MenuOption
-              onSelect={handleDeleteQuestion}
+              onSelect={() => {
+                handleDeleteQuestion(question.id);
+              }}
               customStyles={{
                 optionWrapper: styles.menuOption,
               }}>

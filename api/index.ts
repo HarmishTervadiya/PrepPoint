@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getAuthData, saveAuthData } from '@/utils/authStorage';
 import { apiErrorMessageHandler } from '@/utils/apiMessageHandler';
 
-const API_BASE_URL = 'http://192.168.54.20:3000/api/v1';
+const API_BASE_URL = 'http://192.168.203.108:3000/api/v1';
 
 // Create an Axios instance with custom configuration
 const api = axios.create({
@@ -108,12 +108,14 @@ api.interceptors.response.use(
       try {
         const authData = await getAuthData();
         if (authData?.refreshToken) {
-          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          const response  = await axios.post(`${API_BASE_URL}/student/auth/refresh/`, {
             refreshToken: authData.refreshToken,
+            studentId: authData.userId
           });
 
-          const newAccessToken = data.accessToken;
-          await saveAuthData(authData.userId, newAccessToken, authData.refreshToken);
+          const newAccessToken = response.data.data.accessToken;
+          const newrefreshToken = response.data.data.refreshToken;
+          await saveAuthData(authData.userId, newAccessToken, newrefreshToken);
           originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
           processQueue(null, newAccessToken);
 
@@ -121,6 +123,7 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         console.error('Error refreshing token:', refreshError);
+        console.log(refreshError)
         processQueue(refreshError, null);
         return Promise.reject(new Error('Session expired. Please log in again.'));
       } finally {

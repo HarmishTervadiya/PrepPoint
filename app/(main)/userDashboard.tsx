@@ -244,7 +244,7 @@ const dashboard = () => {
               }}>
               <AnalyticsCard
                 label="Total Earnings"
-                value={totalEarnings.toString()}
+                value={totalEarnings.toPrecision(2) .toString()}
               />
               <AnalyticsCard
                 label="Available Balance"

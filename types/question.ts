@@ -1,6 +1,7 @@
 import { Attachment } from "./auth";
 
 export type QuestionForm = {
+    id?: string;
     title: string;
     subject: string;
     marks: number;

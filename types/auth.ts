@@ -21,8 +21,17 @@ export interface DropdownOption {
 }
 
 export interface Attachment {
+  isLocal?: boolean;
+  publicId?: any;
   uri: string;
   type: string;
   size: number;
 }
 
+export interface CloudinaryAttachment {
+  uri: string; 
+  type: string;
+  size?: number;
+  publicId?: string; 
+  isLocal?: boolean; 
+}
