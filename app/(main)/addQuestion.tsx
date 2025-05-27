@@ -24,12 +24,7 @@ import pickDocument from '@/utils/filePicker';
 import {QuestionForm} from '@/types/question';
 import DropdownField from '@/components/input/DropdownField';
 import {getAllSubjects} from '@/redux-toolkit/features/uploadQuestion/subjectSlice';
-import {
-  Toolbar,
-  RichText,
-  useEditorBridge,
-  ToolbarItems,
-} from '@10play/tentap-editor';
+import {Toolbar, RichText, useEditorBridge} from '@10play/tentap-editor';
 import {uploadQuestion} from '@/redux-toolkit/features/uploadQuestion/questionSlice';
 
 const UploadQuestion = () => {
@@ -117,7 +112,7 @@ const UploadQuestion = () => {
 
     data.answer = content;
     data.attachments = attachments;
-  
+
     const response = await dispatch(uploadQuestion(data));
 
     if (response.meta.requestStatus === 'fulfilled') {
@@ -301,7 +296,10 @@ const UploadQuestion = () => {
             style={[styles.addButton, {backgroundColor: customColors.primary}]}
             onPress={async () => {
               try {
-                const files = await pickDocument({multiple: true, type: ['application/pdf']});
+                const files = await pickDocument({
+                  multiple: true,
+                  type: ['application/pdf'],
+                });
                 if (files && files.length > 0) {
                   const fileData = files.map(file => ({
                     uri: file.uri,
@@ -423,7 +421,6 @@ export default UploadQuestion;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    // backgroundColor: '#f9f9f9',
     paddingBottom: 0,
   },
   header: {
@@ -497,7 +494,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   addButton: {
-    // backgroundColor: '#7c4dff',
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 4,
@@ -541,7 +537,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ebebeb',
     paddingHorizontal: 10,
-    // marginBottom: 70, // Space for the bottom toolbar
   },
   richTextEditor: {
     flex: 1,
@@ -595,8 +590,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     color: 'red',
-    // marginLeft: 10,
-    // marginTop: -12,
-    // marginBottom: 12,
   },
 });

@@ -29,7 +29,6 @@ import {
 import ArrowIcon from '@/assets/images/icons/colored-down-arrow.png';
 import Profile from '@/assets/images/icons/user-icon.png';
 import {useLocalSearchParams, useRouter} from 'expo-router';
-import {Attachment} from '@/types/auth';
 import timeAgoFormatter from '@/utils/dateFormatter';
 import {Alert} from 'react-native';
 
@@ -54,20 +53,25 @@ const QuestionDetails = () => {
     initialContent: questionDetails?.content || 'Loading content...',
   });
   const hasIncreasedReadCount = useRef(false);
-
+  const readCountTimeout = useRef<NodeJS.Timeout | null>(null);
+  const startTime = useRef(Date.now());
+  
   useEffect(() => {
     if (questionId) {
       fetchQuestionDetails();
+      startTime.current = Date.now();
 
-      const timeoutId = setTimeout(() => {
+      readCountTimeout.current = setTimeout(() => {
         if (!hasIncreasedReadCount.current) {
           dispatch(increaseReadCount(questionId as string));
           hasIncreasedReadCount.current = true;
         }
-      }, 150000);
+      }, 10000); // 2.5 minutes
 
       return () => {
-        clearTimeout(timeoutId);
+        if (readCountTimeout.current) {
+          clearTimeout(readCountTimeout.current);
+        }
       };
     }
   }, [questionId]);
@@ -90,13 +94,25 @@ const QuestionDetails = () => {
     }
   };
 
-  // When user taps on a PDF
   const handleOpenPDF = (uri: string, index: number) => {
+    // Calculate elapsed time and remaining time
+    const elapsedTime = Date.now() - startTime.current;
+    const remainingTime = Math.max(0, 10000 - elapsedTime); // 150000ms = 2.5 minutes
+    
+    // Clear the current timeout since we're navigating away
+    if (readCountTimeout.current) {
+      clearTimeout(readCountTimeout.current);
+      readCountTimeout.current = null;
+    }
+
     router.push({
       pathname: '/detail/fileViewer',
       params: {
         uri: uri,
         title: `Attachment ${index + 1}`,
+        questionId: questionId as string,
+        remainingTime: remainingTime.toString(),
+        hasReadCountIncreased: hasIncreasedReadCount.current.toString(),
       },
     });
   };

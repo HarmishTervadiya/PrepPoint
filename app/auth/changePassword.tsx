@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useEffect} from 'react';
@@ -16,7 +15,6 @@ import BackButton from '@/components/BackButton';
 import Label from '@/components/text/Label';
 import {defaultStyle} from '@/themes/defaultStyles';
 import {Typography} from '@/themes/typography';
-import {router} from 'expo-router';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
 import TextInputField from '@/components/input/TextInputField';
@@ -24,7 +22,6 @@ import SubmitButton from '@/components/SubmitButton';
 import {Controller, useForm} from 'react-hook-form';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
 import {
-  authSlice,
   changePassword,
 } from '@/redux-toolkit/features/auth/authSlice';
 import PasswordIcon from '@/assets/images/icons/password.png';
@@ -36,8 +33,6 @@ const ChangePassword = () => {
     control,
     formState: {errors},
     handleSubmit,
-    getValues,
-    setValue,
     watch,
   } = useForm<{
     oldPassword: string;
@@ -48,7 +43,6 @@ const ChangePassword = () => {
   const dispatch = useAppDispatch();
   const watchNewPassword = watch('newPassword');
 
-  // Handle errors
   useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
@@ -74,14 +68,13 @@ const ChangePassword = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             defaultStyle.container,
-            {justifyContent: 'space-between', height: '100%'},
           ]}>
           <View style={[defaultStyle.row]}>
             <BackButton />
             <HeaderShape />
           </View>
 
-          <View>
+          <View style={{flex: 1, marginTop: 40}}>
             <Label
               value={'Change Password'}
               color={customColors.text}
@@ -195,22 +188,6 @@ const ChangePassword = () => {
               )}
             </View>
           </View>
-
-          <TouchableOpacity
-            style={styles.footer}
-            activeOpacity={0.6}
-            onPress={() => router.push('/auth/userLogin')}>
-            <Label
-              value="Already have an account?"
-              color={customColors.secondaryText}
-              textStyle={Typography.body}
-            />
-            <Label
-              value="Login"
-              color={customColors.primaryText}
-              textStyle={Typography.body}
-            />
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 import {defaultStyle} from '@/themes/defaultStyles';
@@ -23,8 +23,6 @@ import SubmitButton from '@/components/SubmitButton';
 import {router} from 'expo-router';
 import {Controller, useForm} from 'react-hook-form';
 import {RegisterForm} from '@/types/auth';
-import DropdownField from '@/components/input/DropdownField';
-import pickDocument from '@/utils/filePicker';
 import {useAppDispatch} from '@/redux-toolkit/store';
 import {
   authenticateUser,
@@ -50,7 +48,7 @@ const UserRegister = () => {
   const onSubmit = async (data: RegisterForm) => {
     console.log('data', data);
     try {
-      const result = await dispatch(signupUser(data)); // Dispatch the signup action
+      const result = await dispatch(signupUser(data)); 
   
       if (result.meta.requestStatus === 'fulfilled') {
         console.log('User Registered Successfully:', result.payload);

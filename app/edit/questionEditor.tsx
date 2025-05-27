@@ -84,7 +84,7 @@ const UpdateQuestion = () => {
   useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
-      // dispatch(clearError());
+      
     }
   }, [error]);
 
@@ -114,7 +114,6 @@ const UpdateQuestion = () => {
       if (result.meta.requestStatus === 'fulfilled') {
         const question = result.payload;
 
-        // Convert marks to number
         const marksValue =
           typeof question.marks === 'string'
             ? parseInt(question.marks)
@@ -126,7 +125,6 @@ const UpdateQuestion = () => {
           marks: marksValue,
         });
 
-        // Set editor content
         editor.setContent(question.content);
 
         // Set attachments

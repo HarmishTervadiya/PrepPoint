@@ -20,19 +20,15 @@ import {
 
 // Components
 import BackButton from '@/components/BackButton';
-import HeaderShape from '@/components/auth/HeaderShape';
 import Label from '@/components/text/Label';
-import TextInputField from '@/components/input/TextInputField';
 import SubmitButton from '@/components/SubmitButton';
 
 // Styles
 import {defaultStyle} from '@/themes/defaultStyles';
-import {Typography} from '@/themes/typography';
 import {CustomTheme} from '@/types/customTheme';
 
 // Default profile image
 import ProfileIcon from '@/assets/images/icon.png';
-import {Attachment} from '@/types/auth';
 import pickDocument from '@/utils/filePicker';
 
 const ProfileEditForm = () => {
@@ -75,7 +71,6 @@ const ProfileEditForm = () => {
 
   const changeProfile = async ({uri, type, size}: any) => {
     try {
-      // Dispatch update profile action
       const response = await dispatch(
         updateUserProfilePicture({
           _id: user._id,
@@ -123,7 +118,7 @@ const ProfileEditForm = () => {
                   type: file[0].type,
                   size: file[0].size,
                 };
-                
+
                 changeProfile(fileData);
               }
             } catch (err) {
@@ -238,6 +233,23 @@ const ProfileEditForm = () => {
               />
             </View>
           </View> */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              router.push('/auth/changePassword');
+            }}>
+              
+            <Label
+              value={'Change Password'}
+              color={customColors.primary}
+              textStyle={{
+                textAlign: 'right',
+                marginBottom: 10,
+                fontWeight: 'bold',
+                fontSize: 14,
+              }}
+            />
+          </TouchableOpacity>
 
           {/* Submit Button */}
           <SubmitButton
@@ -246,7 +258,6 @@ const ProfileEditForm = () => {
             backgroundColor="#7B68EE"
             onPress={handleSubmit(onSubmit)}
             width="100%"
-            // style={styles.updateButton}
           />
         </View>
       </ScrollView>
@@ -317,9 +328,6 @@ const styles = StyleSheet.create({
   },
   halfColumn: {
     width: '48%',
-  },
-  updateButton: {
-    marginTop: 10,
   },
   error: {
     color: 'red',

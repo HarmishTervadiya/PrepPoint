@@ -1,16 +1,42 @@
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import React, { useEffect, useRef } from 'react';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 import Label from '@/components/text/Label';
 import Pdf from 'react-native-pdf';
-import {useTheme} from '@react-navigation/native';
-import {CustomTheme} from '@/types/customTheme';
+import { increaseReadCount } from '@/redux-toolkit/features/content/questionSlice';
+import { useAppDispatch } from '@/redux-toolkit/store';
 const fileViewer = () => {
-  const {uri, title} = useLocalSearchParams();
-  // console.log(uri);
-  const {customColors} = useTheme() as CustomTheme;
+  const {uri, title, questionId, remainingTime, hasReadCountIncreased} = useLocalSearchParams();
+  
+  const dispatch = useAppDispatch();
+  const readCountTimeout = useRef<NodeJS.Timeout | null>(null);
+  const hasIncreasedReadCountRef = useRef(hasReadCountIncreased === 'true');
+
+  useEffect(() => {
+    // Only set up the timeout if the read count hasn't been increased yet
+    if (!hasIncreasedReadCountRef.current && remainingTime && parseInt(remainingTime as string) > 0) {
+      const timeLeft = parseInt(remainingTime as string);
+      
+      readCountTimeout.current = setTimeout(() => {
+        if (!hasIncreasedReadCountRef.current && questionId) {
+          dispatch(increaseReadCount(questionId as string));
+          hasIncreasedReadCountRef.current = true;
+          console.log('Read count increased from PDF viewer');
+        }
+      }, timeLeft);
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (readCountTimeout.current) {
+        clearTimeout(readCountTimeout.current);
+      }
+    };
+  }, [questionId, remainingTime, hasReadCountIncreased]);
+
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -30,9 +56,6 @@ const fileViewer = () => {
           enableDoubleTapZoom
           trustAllCerts={false}
           scrollEnabled
-          // renderActivityIndicator={() => (
-          //   <ActivityIndicator size={'large'} color={customColors.primary} />
-          // )}
           onLoadComplete={numberOfPages => {
             console.log(`PDF loaded with ${numberOfPages} pages`);
           }}

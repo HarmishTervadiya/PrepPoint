@@ -10,7 +10,7 @@ import {useColorScheme} from '@/hooks/useColorScheme';
 import {DarkTheme} from '@/themes/darkTheme';
 import {LightTheme} from '@/themes/lightTheme';
 import {Provider} from 'react-redux';
-import store, {useAppDispatch} from '../redux-toolkit/store';
+import store from '../redux-toolkit/store';
 import React from 'react';
 import {MenuProvider} from 'react-native-popup-menu';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -84,6 +84,7 @@ export default function RootLayout() {
               name="edit/profileEditor"
               options={{headerShown: false}}
             />
+            
             <Stack.Screen
               name="edit/questionEditor"
               options={{headerShown: false}}

@@ -1,13 +1,11 @@
 import {
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -21,33 +19,16 @@ import TextInputField from '@/components/input/TextInputField';
 
 // Styles and Assets
 import {defaultStyle} from '@/themes/defaultStyles';
-import {Typography} from '@/themes/typography';
 import {CustomTheme} from '@/types/customTheme';
-import Profile from '@/assets/images/icon.png';
 import SearchIcon from '@/assets/images/icons/search.png';
-import {
-  Menu,
-  MenuOption,
-  MenuOptions,
-  MenuTrigger,
-} from 'react-native-popup-menu';
-import {Ionicons} from '@expo/vector-icons';
-import {
-  getUserProfileDetails,
-  searchQuestion,
-} from '@/redux-toolkit/features/userProfile/userProfileSlice';
-import {Question} from '@/types/question';
-import timeAgoFormatter from '@/utils/dateFormatter';
-import {useRouter} from 'expo-router';
 import {
   getAllInstitutes,
   searchInstitute,
 } from '@/redux-toolkit/features/content/instituteSlice';
 import InstituteCard from '@/components/cards/InstituteCard';
-import {Institute} from '@/types/institute';
+import BackButton from '@/components/BackButton';
 
 const InstituteList = () => {
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const {customColors} = useTheme() as CustomTheme;
 
@@ -94,6 +75,7 @@ const InstituteList = () => {
           contentContainerStyle={[defaultStyle.container, styles.container]}>
           {/* Header */}
           <View style={styles.header}>
+            <BackButton />
             <Label
               value="Institute List"
               color={customColors.text}
@@ -158,7 +140,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#d6d6d6',
   },
   headerTitle: {
-    width: '100%',
+    width: '80%',
     textAlign: 'center',
     fontSize: 20,
     fontWeight: '600',

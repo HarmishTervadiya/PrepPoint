@@ -15,6 +15,14 @@ export interface VerificationForm {
   course: string;
   proof: Attachment;
 }
+
+export type ForgotPasswordFormData = {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 export interface DropdownOption {
   label: string;
   value: string;

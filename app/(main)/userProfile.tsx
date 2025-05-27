@@ -66,12 +66,6 @@ const UserProfile = () => {
       if (auth?.userId) {
         const result = await dispatch(getUserDetails(auth.userId));
         dispatch(getUserProfileDetails(auth.userId));
-        if (result.meta.requestStatus === 'rejected') {
-          // Alert.alert(
-          //   'Error',
-          //   'Something went wrong while fetching user details',
-          // );
-        }
       }
     } catch (error) {
       console.error('Auth fetch error:', error);
@@ -112,8 +106,8 @@ const UserProfile = () => {
 
   const handleDeleteQuestion = async (questionId: string) => {
     const response = await dispatch(deleteQuestion(questionId));
-    if(response.meta.requestStatus === 'fulfilled'){
-      dispatch(deleteQuestionFromList(questionId))
+    if (response.meta.requestStatus === 'fulfilled') {
+      dispatch(deleteQuestionFromList(questionId));
     }
   };
 
@@ -233,62 +227,68 @@ const UserProfile = () => {
           </View>
 
           <View style={styles.contentContainer}>
-            <View style={[defaultStyle.row, styles.profileSection]}>
-              <View style={[defaultStyle.row, styles.profileInfo]}>
-                {user.profilePic && user.profilePic.uri ? (
-                  <Image
-                    source={{uri: user.profilePic.uri}}
-                    style={styles.profilePic}
-                  />
-                ) : (
-                  <Image source={Profile} style={styles.profilePic} />
-                )}
-                <View>
-                  <Text
-                    style={[
-                      styles.cardText,
-                      Typography.body,
-                      {color: customColors.text},
-                    ]}>
-                    {user.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.cardText,
-                      Typography.cardDetails,
-                      {color: customColors.secondaryText},
-                    ]}>
-                    {user.username || ''}
-                  </Text>
+            {user._id && (
+              <View style={[defaultStyle.row, styles.profileSection]}>
+                <View style={[defaultStyle.row, styles.profileInfo]}>
+                  {user.profilePic && user.profilePic.uri ? (
+                    <Image
+                      source={{uri: user.profilePic.uri}}
+                      style={styles.profilePic}
+                    />
+                  ) : (
+                    <Image source={Profile} style={styles.profilePic} />
+                  )}
+                  <View>
+                    <Text
+                      style={[
+                        styles.cardText,
+                        Typography.body,
+                        {color: customColors.text},
+                      ]}>
+                      {user.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.cardText,
+                        Typography.cardDetails,
+                        {color: customColors.secondaryText},
+                      ]}>
+                      {user.username || ''}
+                    </Text>
+                  </View>
                 </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push('/edit/profileEditor');
+                  }}
+                  style={styles.editProfile}>
+                  <Text style={styles.editProfileText}>Edit Profile</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => {
-                  router.push('/edit/profileEditor');
-                }}
-                style={styles.editProfile}>
-                <Text style={styles.editProfileText}>Edit Profile</Text>
-              </TouchableOpacity>
-            </View>
+            )}
 
-            <Label
-              value="Posted Questions"
-              color={customColors.text}
-              textStyle={Typography.title}
-            />
+            {userQuestions && userQuestions.length > 0 && (
+              <>
+                <Label
+                  value="Posted Questions"
+                  color={customColors.text}
+                  textStyle={Typography.title}
+                />
 
-            <TextInputField
-              value={searchValue}
-              onChangeText={handleSearch}
-              placeholder="Search"
-              icon={SearchIcon}
-            />
+                <TextInputField
+                  value={searchValue}
+                  onChangeText={handleSearch}
+                  placeholder="Search"
+                  icon={SearchIcon}
+                />
 
-            {searchValue
-              ? searchResults.map(question => renderQuestion(question))
-              : userQuestions &&
-                userQuestions.length > 0 &&
-                userQuestions.map(question => renderQuestion(question))}
+                {searchValue
+                  ? searchResults.map(question => renderQuestion(question))
+                  : userQuestions &&
+                    userQuestions.length > 0 &&
+                    userQuestions.map(question => renderQuestion(question))}
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

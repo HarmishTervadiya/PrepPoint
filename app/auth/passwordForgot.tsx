@@ -37,33 +37,22 @@ import PasswordIcon from '@/assets/images/icons/password.png';
 import {defaultStyle} from '@/themes/defaultStyles';
 import {Typography} from '@/themes/typography';
 import {CustomTheme} from '@/types/customTheme';
-
-// Define form data types
-type ForgotPasswordFormData = {
-  email: string;
-  otp: string;
-  newPassword: string;
-  confirmPassword: string;
-};
+import { ForgotPasswordFormData } from '@/types/auth';
 
 const PasswordForgot = () => {
   const {customColors} = useTheme() as CustomTheme;
   const dispatch = useAppDispatch();
   const [step, setStep] = useState<'email' | 'otp' | 'newPassword'>('email');
   const [resendCooldown, setResendCooldown] = useState(0);
-  // Get auth state from Redux
   const forgotPassword = useAppSelector(
     state => state.authReducer.forgotPassword,
   );
   const {loading, error, studentId, otpSent, otpVerified} = forgotPassword;
-
-  // Form setup
   const {
     control,
     handleSubmit,
     formState: {errors},
     getValues,
-    setValue,
     watch,
   } = useForm<ForgotPasswordFormData>({
     defaultValues: {
@@ -101,7 +90,6 @@ const PasswordForgot = () => {
     }
   }, [otpSent, otpVerified, step]);
 
-  // Handle errors
   useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
@@ -147,7 +135,6 @@ const PasswordForgot = () => {
     [step, studentId, dispatch],
   );
 
-  // Handle OTP resend
   const handleResendOTP = useCallback(async () => {
     if (resendCooldown > 0) return;
 
@@ -201,8 +188,6 @@ const PasswordForgot = () => {
                     secureTextEntry={false}
                     icon={EmailIcon}
                     editable={!loading}
-                    // autoCapitalize="none"
-                    // keyboardType="email-address"
                   />
                 )}
                 name="email"

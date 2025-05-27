@@ -35,7 +35,7 @@ import {useRouter} from 'expo-router';
 
 const UserVerification = () => {
   const {customColors} = useTheme() as CustomTheme;
-  const {loading, error, user} = useAppSelector(state => state.authReducer);
+  const {error} = useAppSelector(state => state.authReducer);
   const dispatch = useAppDispatch();
   const [institutes, setInstitutes] = useState<
     {value: string; label: string}[]
@@ -60,12 +60,10 @@ const UserVerification = () => {
     }
   };
 
-  // Fetch institute courses on component mount only
   useEffect(() => {
     getInstituteCoursesData();
-  }, [dispatch]); // Add dispatch to dependency array
+  }, [dispatch]); 
 
-  // Handle error changes
   useEffect(() => {
     if (error) {
       Alert.alert('Error', error);
@@ -156,7 +154,7 @@ const UserVerification = () => {
         refreshControl={
           <RefreshControl
             refreshing={refreshLoading}
-            onRefresh={onRefresh} // Fixed the onRefresh call
+            onRefresh={onRefresh} 
             colors={[customColors.primary]}
           />
         }>

@@ -50,12 +50,7 @@ const search = () => {
     state => state.questionContentReducer,
   );
 
-  const {
-    control,
-    handleSubmit,
-    formState: {errors},
-    reset,
-  } = useForm({
+  const {control, handleSubmit, reset} = useForm({
     defaultValues: {instituteId: '', courseId: '', subjectId: ''},
   });
 
@@ -86,9 +81,7 @@ const search = () => {
   // Effect to handle cleanup when component loses focus (tab switch)
   useFocusEffect(
     useCallback(() => {
-      // When screen comes into focus, fetch questions
       fetchTopQuestions();
-
       // When screen loses focus, reset filters
       return () => {
         clearFilters();
@@ -222,7 +215,7 @@ const search = () => {
             />
           }
           contentContainerStyle={[styles.container]}>
-                    <View style={styles.header}>
+          <View style={styles.header}>
             <Label
               value="Search"
               color={customColors.text}
@@ -453,7 +446,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     marginVertical: 10,
-    // gap: 12,
   },
   header: {
     flexDirection: 'row',

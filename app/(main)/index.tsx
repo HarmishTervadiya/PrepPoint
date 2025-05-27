@@ -1,9 +1,8 @@
 import {
   ActivityIndicator,
-  Alert,
-  Button,
   FlatList,
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,7 +11,7 @@ import {
 } from 'react-native';
 import React, {useState, useEffect, useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useFocusEffect, useRouter, useSegments} from 'expo-router';
+import {useFocusEffect, useRouter} from 'expo-router';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
 import {getAuthData} from '@/utils/authStorage';
 import {
@@ -32,7 +31,6 @@ import {getTopContributors} from '@/redux-toolkit/features/content/contributorSl
 
 const Index = () => {
   const router = useRouter();
-  const segments = useSegments(); // Monitor current route segments
   const dispatch = useAppDispatch();
   const {user, isLoggedIn} = useAppSelector(state => state.authReducer);
   const {questions} = useAppSelector(state => state.questionContentReducer);
@@ -42,6 +40,7 @@ const Index = () => {
   const [isReady, setIsReady] = useState(false); // Track readiness of layout/router
   const [authChecked, setAuthChecked] = useState(false);
   const {customColors} = useTheme() as CustomTheme;
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   useEffect(() => {
     // Simulate a delay to ensure layout/rendering is complete (optional)
@@ -74,9 +73,12 @@ const Index = () => {
 
   useFocusEffect(
     useCallback(() => {
-      dispatch(getTopQuestions());
-      dispatch(getAllInstitutes());
-      dispatch(getTopContributors());
+      Promise.all([
+        dispatch(getUserDetails(user.id)),
+        dispatch(getTopQuestions()),
+        dispatch(getAllInstitutes()),
+        dispatch(getTopContributors()),
+      ]);
     }, [dispatch]),
   );
 
@@ -92,15 +94,40 @@ const Index = () => {
     });
   };
 
+  const handleRefresh = useCallback(() => {
+    setRefreshLoading(true);
+    Promise.all([
+      dispatch(getTopQuestions()),
+      dispatch(getAllInstitutes()),
+      dispatch(getTopContributors()),
+    ]);
+    setTimeout(() => {
+      setRefreshLoading(false);
+    }, 1000);
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshLoading}
+            onRefresh={handleRefresh}
+            colors={[customColors.primary]}
+          />
+        }>
         {/* Header */}
         <View style={defaultStyle.row}>
           <Text style={Typography.heading}>PrepPoint</Text>
           {user?.id ? (
             <TouchableOpacity onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={28} color={customColors.primary} />
+              <Ionicons
+                name="log-out-outline"
+                size={28}
+                color={customColors.primary}
+              />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => router.replace('/auth/userLogin')}>
@@ -108,29 +135,27 @@ const Index = () => {
             </TouchableOpacity>
           )}
         </View>
-
         {/* Welcome Section */}
         <Label
           value={`Hey, ${user?.name || ''}`}
           color={customColors.text}
           textStyle={styles.welcomeText}
         />
-        
         <Label
           value="Ready to clear your exams"
           color={customColors.secondary}
           textStyle={styles.taglineText}
         />
-
-        {/* Questions Section */}
-        {questions?.length > 0 && (
+        {questions.length > 0 &&
+        institutes.length > 0 &&
+        contributors.length > 0 ? (
           <>
+            {/* Top Question Section */}
             <Label
               value="Here are some IMP's for you"
               color={customColors.text}
               textStyle={styles.sectionTitle}
             />
-            
             <FlatList
               style={styles.questionsList}
               data={questions.slice(0, 5)}
@@ -156,19 +181,16 @@ const Index = () => {
               )}
               keyExtractor={item => item.id}
             />
-          </>
-        )}
 
-        {/* Institutes Section */}
-        {institutes?.length > 0 && (
-          <>
+            {/* Institutes Section */}
             <View style={[defaultStyle.row, styles.sectionHeader]}>
               <Label
                 value="Explore Institutes"
                 color={customColors.text}
                 textStyle={Typography.label}
               />
-              <TouchableOpacity onPress={() => router.push('/detail/instituteList')}>
+              <TouchableOpacity
+                onPress={() => router.push('/detail/instituteList')}>
                 <Label
                   value="View All"
                   color={customColors.primary}
@@ -176,7 +198,6 @@ const Index = () => {
                 />
               </TouchableOpacity>
             </View>
-
             <FlatList
               data={institutes.slice(0, 6)}
               numColumns={3}
@@ -184,7 +205,9 @@ const Index = () => {
               showsVerticalScrollIndicator={false}
               columnWrapperStyle={styles.instituteRow}
               renderItem={({item}) => (
-                <TouchableOpacity style={styles.instituteCard}>
+                <TouchableOpacity
+                  style={styles.instituteCard}
+                  activeOpacity={0.9}>
                   <Image
                     source={{uri: item.instituteLogo.uri}}
                     style={styles.instituteIcon}
@@ -194,34 +217,39 @@ const Index = () => {
               )}
               keyExtractor={item => item._id}
             />
-          </>
-        )}
 
-        {/* Contributors Section */}
-        {contributors?.length > 0 && (
-          <>
+            {/* Contributors Section */}
             <Label
               value="Top Contributors"
               color={customColors.text}
               textStyle={Typography.label}
             />
-
             <FlatList
               data={contributors}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
               renderItem={({item}) => (
-                <TouchableOpacity style={styles.contributorItem}>
+                <TouchableOpacity
+                  style={styles.contributorItem}
+                  activeOpacity={0.9}>
                   <Image
                     source={{uri: item.owner.profilePic.uri}}
                     style={styles.contributorAvatar}
                     resizeMode="cover"
                   />
                   <View style={styles.contributorInfo}>
-                    <Text style={[styles.contributorName, {color: customColors.text}]}>
+                    <Text
+                      style={[
+                        styles.contributorName,
+                        {color: customColors.text},
+                      ]}>
                       {item.owner.username}
                     </Text>
-                    <Text style={[styles.contributorReads, {color: customColors.secondaryText}]}>
+                    <Text
+                      style={[
+                        styles.contributorReads,
+                        {color: customColors.secondaryText},
+                      ]}>
                       Reads: {item.totalReads}
                     </Text>
                   </View>
@@ -230,6 +258,12 @@ const Index = () => {
               keyExtractor={item => item.owner._id}
             />
           </>
+        ) : (
+          <ActivityIndicator
+            size={'large'}
+            color={customColors.primary}
+            style={{flex: 1}}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
