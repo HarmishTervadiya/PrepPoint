@@ -15,6 +15,7 @@ import React from 'react';
 import {MenuProvider} from 'react-native-popup-menu';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({duration: 2000, fade: true})
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -84,7 +85,7 @@ export default function RootLayout() {
               name="edit/profileEditor"
               options={{headerShown: false}}
             />
-            
+
             <Stack.Screen
               name="edit/questionEditor"
               options={{headerShown: false}}
