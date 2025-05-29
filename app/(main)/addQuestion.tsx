@@ -9,7 +9,7 @@ import {
   View,
   Alert,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
@@ -26,6 +26,7 @@ import DropdownField from '@/components/input/DropdownField';
 import {getAllSubjects} from '@/redux-toolkit/features/uploadQuestion/subjectSlice';
 import {Toolbar, RichText, useEditorBridge} from '@10play/tentap-editor';
 import {uploadQuestion} from '@/redux-toolkit/features/uploadQuestion/questionSlice';
+import { router, useFocusEffect } from 'expo-router';
 
 const UploadQuestion = () => {
   const {customColors} = useTheme() as CustomTheme;
@@ -33,6 +34,7 @@ const UploadQuestion = () => {
   const {subjects, loading, error} = useAppSelector(
     state => state.subjectReducer,
   );
+  const authUser = useAppSelector(state => state.authReducer);
 
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -71,6 +73,14 @@ const UploadQuestion = () => {
   useEffect(() => {
     fetchSubjects();
   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if(!authUser.user.id){
+        router.push('/auth/userLogin')
+      }
+    }, [authUser])
+  );
 
   const handleRefresh = () => {
     setRefreshLoading(true);
@@ -383,6 +393,7 @@ const UploadQuestion = () => {
     </View>
   );
 
+  
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#f9f9f9'}}>
       <KeyboardAvoidingView

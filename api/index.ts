@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getAuthData, saveAuthData } from '@/utils/authStorage';
 import { apiErrorMessageHandler } from '@/utils/apiMessageHandler';
 
-const API_BASE_URL = 'http://192.168.203.108:3000/api/v1';
+const API_BASE_URL = 'https://imp-app-backend.onrender.com/api/v1';
 
 // Create an Axios instance with custom configuration
 const api = axios.create({

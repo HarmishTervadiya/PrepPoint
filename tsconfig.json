@@ -6,7 +6,16 @@
     "paths": {
       "@/*": [
         "./*"
-      ]
+      ],
+      "@/api": ["./api"],
+      "@/components": ["./components"],
+      "@/utils": ["./utils"],
+      "@/redux-toolkit": ["./redux-toolkit"],
+      "@/types": ["./types"],
+      "@/assets": ["./assets"],
+      "@/themes": ["./themes"],
+      "@/constants": ["./constants"],
+      "@/hooks": ["./hooks"],
     }
   },
   "include": [

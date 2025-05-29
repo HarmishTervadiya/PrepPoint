@@ -2,7 +2,7 @@
   "expo": {
     "name": "PrepPoint",
     "slug": "PrepPoint",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon.png",
     "scheme": "myapp",
@@ -44,6 +44,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4cde46a0-6377-4b6e-a23d-f65c1ca7af48"
+      }
     }
   }
 }

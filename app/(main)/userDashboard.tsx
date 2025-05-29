@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useTheme} from '@react-navigation/native';
+import {useFocusEffect, useTheme} from '@react-navigation/native';
 import {CustomTheme} from '@/types/customTheme';
 import Label from '@/components/text/Label';
 import {defaultStyle} from '@/themes/defaultStyles';
@@ -26,6 +26,7 @@ import {
 import timeAgoFormatter from '@/utils/dateFormatter';
 import {Controller, useForm} from 'react-hook-form';
 import {Alert} from 'react-native';
+import { router } from 'expo-router';
 
 const dashboard = () => {
   const {customColors} = useTheme() as CustomTheme;
@@ -58,6 +59,14 @@ const dashboard = () => {
   useEffect(() => {
     dispatch(fetchAnalytics(user.id));
   }, [dispatch, user.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if(!user.id){
+        router.push('/auth/userLogin')
+      }
+    }, [])
+  );
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);

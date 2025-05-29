@@ -166,7 +166,11 @@ const Index = () => {
                   <QuestionCard
                     key={item.id}
                     username={item.owner.username || ''}
-                    title={item.title || ''}
+                    title={
+                      item.title?.length > 30
+                        ? `${item.title.substring(0, 60)}...`
+                        : item.title || ''
+                    }
                     subject={item.subject}
                     marks={item.marks}
                     attachments={item.attachments?.length || 0}

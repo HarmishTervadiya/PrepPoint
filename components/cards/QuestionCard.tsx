@@ -1,4 +1,11 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View, Platform} from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Platform,
+} from 'react-native';
 import React from 'react';
 import {defaultStyle} from '@/themes/defaultStyles';
 import {Typography} from '@/themes/typography';
@@ -36,29 +43,31 @@ export default function QuestionCard({
 }: QuestionCardProps) {
   const {customColors} = useTheme() as CustomTheme;
 
-  // Make sure subject is actually a string to prevent type errors
   const subjectName =
     typeof subject === 'string' ? subject : subject || 'Unknown Subject';
 
-  // Make sure reads is a number
   const readsCount = typeof reads === 'number' ? reads : 0;
 
-  // Make sure attachments is a number
   const attachmentsCount = typeof attachments === 'number' ? attachments : 0;
 
   return (
     <TouchableOpacity
       key={id}
       activeOpacity={0.9}
-      style={styles.container}
+      style={[styles.container,
+        !showFull && {height: 165}
+      ]}
       onPress={onPress}>
       <View style={[defaultStyle.row, {gap: 6}]}>
-        <Text style={styles.subjectBox}>{subjectName}</Text>
+        <Text style={[styles.subjectBox, !showFull && {fontSize: 12}]}>
+          {subjectName}
+        </Text>
         <Text
           style={[
             styles.cardText,
             Typography.cardDetails,
             {color: customColors.secondaryText},
+            !showFull && {fontSize: 12},
           ]}>
           {timeAgoFormatter(date)}
         </Text>
@@ -68,6 +77,7 @@ export default function QuestionCard({
           styles.cardTitle,
           Typography.title,
           {color: customColors.text},
+          !showFull && {fontSize: 15},
         ]}>
         {title}
       </Text>
@@ -158,9 +168,7 @@ const styles = StyleSheet.create({
         elevation: 3, // Reduced from 2 to 3 for better consistency
       },
     }),
-    // Alternative: Use border instead of elevation/shadow
-    // borderWidth: 1,
-    // borderColor: '#E5E5E5',
+    justifyContent: 'space-between'
   },
   profilePic: {
     height: 30,
@@ -176,6 +184,7 @@ const styles = StyleSheet.create({
     color: '#1877F2',
     fontWeight: 'bold',
     fontSize: 13,
+    flexShrink: 1,
   },
   fileBox: {
     backgroundColor: '#F2F2F2',
@@ -188,6 +197,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     marginBottom: 10,
+    flexShrink: 1,
   },
   cardText: {
     fontSize: 13,

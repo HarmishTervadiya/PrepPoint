@@ -38,17 +38,19 @@ import {
 } from '@/redux-toolkit/features/userProfile/userProfileSlice';
 import {Question} from '@/types/question';
 import timeAgoFormatter from '@/utils/dateFormatter';
-import {useRouter} from 'expo-router';
+import {useFocusEffect, useRouter} from 'expo-router';
 import {deleteQuestion} from '@/redux-toolkit/features/content/questionSlice';
 import {getUserDetails} from '@/redux-toolkit/features/auth/authSlice';
 import {getAuthData, saveAuthData} from '@/utils/authStorage';
 
 const UserProfile = () => {
+  // Add auth redirection for guest user
   const router = useRouter();
   const dispatch = useAppDispatch();
   const {user, userQuestions, searchResults, loading, error} = useAppSelector(
     state => state.userProfileReducer,
   );
+  
   const authUser = useAppSelector(state => state.authReducer);
   const {customColors} = useTheme() as CustomTheme;
 
@@ -66,11 +68,21 @@ const UserProfile = () => {
       if (auth?.userId) {
         const result = await dispatch(getUserDetails(auth.userId));
         dispatch(getUserProfileDetails(auth.userId));
+      }else{
+        router.push('/auth/userLogin')
       }
     } catch (error) {
       console.error('Auth fetch error:', error);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      if(!authUser.user.id){
+        router.push('/auth/userLogin')
+      }
+    }, [authUser])
+  );
 
   useEffect(() => {
     fetchUserQuestions();
