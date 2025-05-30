@@ -1,4 +1,5 @@
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -50,7 +51,7 @@ const UserProfile = () => {
   const {user, userQuestions, searchResults, loading, error} = useAppSelector(
     state => state.userProfileReducer,
   );
-  
+
   const authUser = useAppSelector(state => state.authReducer);
   const {customColors} = useTheme() as CustomTheme;
 
@@ -68,8 +69,8 @@ const UserProfile = () => {
       if (auth?.userId) {
         const result = await dispatch(getUserDetails(auth.userId));
         dispatch(getUserProfileDetails(auth.userId));
-      }else{
-        router.push('/auth/userLogin')
+      } else {
+        router.push('/auth/userLogin');
       }
     } catch (error) {
       console.error('Auth fetch error:', error);
@@ -78,10 +79,11 @@ const UserProfile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if(!authUser.user.id){
-        router.push('/auth/userLogin')
+      if (!authUser.user.id) {
+        Alert.alert('Authentication', 'Please login to your account');
+        router.push('/auth/userLogin');
       }
-    }, [authUser])
+    }, [authUser]),
   );
 
   useEffect(() => {
@@ -259,14 +261,16 @@ const UserProfile = () => {
                       ]}>
                       {user.name}
                     </Text>
-                    <Text
-                      style={[
-                        styles.cardText,
-                        Typography.cardDetails,
-                        {color: customColors.secondaryText},
-                      ]}>
-                      {user.username || ''}
-                    </Text>
+                    {user.username && (
+                      <Text
+                        style={[
+                          styles.cardText,
+                          Typography.cardDetails,
+                          {color: customColors.secondaryText},
+                        ]}>
+                        {user.username || ''}
+                      </Text>
+                    )}
                   </View>
                 </View>
                 <TouchableOpacity
@@ -279,27 +283,54 @@ const UserProfile = () => {
               </View>
             )}
 
-            {userQuestions && userQuestions.length > 0 && (
-              <>
-                <Label
-                  value="Posted Questions"
-                  color={customColors.text}
-                  textStyle={Typography.title}
-                />
+            {authUser.user.isVerified ? (
+              userQuestions &&
+              userQuestions.length > 0 && (
+                <>
+                  <Label
+                    value="Posted Questions"
+                    color={customColors.text}
+                    textStyle={Typography.title}
+                  />
 
-                <TextInputField
-                  value={searchValue}
-                  onChangeText={handleSearch}
-                  placeholder="Search"
-                  icon={SearchIcon}
-                />
+                  <TextInputField
+                    value={searchValue}
+                    onChangeText={handleSearch}
+                    placeholder="Search"
+                    icon={SearchIcon}
+                  />
 
-                {searchValue
-                  ? searchResults.map(question => renderQuestion(question))
-                  : userQuestions &&
-                    userQuestions.length > 0 &&
-                    userQuestions.map(question => renderQuestion(question))}
-              </>
+                  {searchValue
+                    ? searchResults.map(question => renderQuestion(question))
+                    : userQuestions &&
+                      userQuestions.length > 0 &&
+                      userQuestions.map(question => renderQuestion(question))}
+                </>
+              )
+            ) : (
+              <View
+                style={{
+                  height: '50%',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push('/auth/userVerification');
+                  }}>
+                  <Label
+                    value={'Verify your account and become a contributor'}
+                    color={''}
+                    textStyle={{
+                      textAlign: 'center',
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      color: customColors.secondary,
+                      textDecorationLine: 'underline',
+                    }}
+                  />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </ScrollView>

@@ -1,12 +1,13 @@
 import {
   Alert,
+  BackHandler,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BackButton from '@/components/BackButton';
 import {defaultStyle} from '@/themes/defaultStyles';
@@ -68,7 +69,19 @@ const UserRegister = () => {
     }
   };
   
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.replace('/(main)');
+        return true;
+      }
+    );
 
+    return () => backHandler.remove();
+  }, []);
+
+  
   return (
     <SafeAreaView>
       <ScrollView
@@ -99,10 +112,10 @@ const UserRegister = () => {
             <Controller
               control={control}
               rules={{
-                required: {value: true, message: 'Username is required'},
+                required: {value: true, message: 'Name is required'},
                 minLength: {
                   value: 4,
-                  message: 'Username must be greater than 4 characters',
+                  message: 'Name must be greater than 4 characters',
                 },
               }}
               render={({field: {onChange, onBlur, value}}) => (
@@ -110,7 +123,7 @@ const UserRegister = () => {
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder="Username"
+                  placeholder="Name"
                   secureTextEntry={false}
                   icon={UserIcon}
                 />
@@ -155,6 +168,12 @@ const UserRegister = () => {
                 minLength: {
                   value: 6,
                   message: 'Password must be at least 6 characters',
+                },
+                pattern: {
+                  value:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                  message:
+                    'Password must contain uppercase, lowercase, number, and special character, Whitespace is not allowed',
                 },
               }}
               render={({field: {onChange, onBlur, value}}) => (

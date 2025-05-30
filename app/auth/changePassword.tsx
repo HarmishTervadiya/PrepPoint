@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -25,10 +26,12 @@ import {
   changePassword,
 } from '@/redux-toolkit/features/auth/authSlice';
 import PasswordIcon from '@/assets/images/icons/password.png';
+import { useRouter } from 'expo-router';
 
 const ChangePassword = () => {
   const {customColors} = useTheme() as CustomTheme;
   const {loading, error} = useAppSelector(state => state.authReducer);
+  const router = useRouter()
   const {
     control,
     formState: {errors},
@@ -40,6 +43,19 @@ const ChangePassword = () => {
     confirmPassword: string;
   }>();
 
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.replace('/(main)');
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
+  
   const dispatch = useAppDispatch();
   const watchNewPassword = watch('newPassword');
 
@@ -122,7 +138,7 @@ const ChangePassword = () => {
                     value:
                       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
                     message:
-                      'Password must contain uppercase, lowercase, number, and special character',
+                      'Password must contain uppercase, lowercase, number, and special character, Whitespace is not allowed',
                   },
                 }}
                 render={({field: {onChange, onBlur, value}}) => (

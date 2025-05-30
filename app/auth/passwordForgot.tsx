@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  BackHandler,
 } from 'react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -62,6 +63,19 @@ const PasswordForgot = () => {
       confirmPassword: '',
     },
   });
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.back();
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
 
   // Watch values for password confirmation validation
   const watchNewPassword = watch('newPassword');
@@ -338,7 +352,7 @@ const PasswordForgot = () => {
                     value:
                       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
                     message:
-                      'Password must contain uppercase, lowercase, number, and special character',
+                      'Password must contain uppercase, lowercase, number, and special character, Whitespace is not allowed',
                   },
                 }}
                 render={({field: {onChange, onBlur, value}}) => (

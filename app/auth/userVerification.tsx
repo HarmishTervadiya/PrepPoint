@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  BackHandler,
 } from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -43,6 +44,20 @@ const UserVerification = () => {
   const [courses, setCourses] = useState<{value: string; label: string}[]>([]);
   const [refreshLoading, setRefreshLoading] = useState(false);
   const router = useRouter();
+  
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.replace('/(main)');
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
+
   const getInstituteCoursesData = async () => {
     try {
       const response = await dispatch(getInstitutes());
@@ -137,6 +152,7 @@ const UserVerification = () => {
     }
   };
 
+  
   const onRefresh = useCallback(() => {
     setRefreshLoading(true);
     getInstituteCoursesData();

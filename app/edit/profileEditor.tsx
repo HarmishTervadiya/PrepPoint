@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
+  BackHandler,
   Image,
   ScrollView,
   StyleSheet,
@@ -47,6 +48,18 @@ const ProfileEditForm = () => {
       name: user.name || '',
     },
   });
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.back();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   const onSubmit = async (data: any) => {
     try {
@@ -136,30 +149,35 @@ const ProfileEditForm = () => {
 
         {/* Form Fields */}
         <View style={styles.form}>
-          {/* Username Field */}
-          <Label
-            value="Username"
-            color={customColors.text}
-            textStyle={styles.inputLabel}
-          />
-          <Controller
-            control={control}
-            rules={{required: 'Username is required'}}
-            render={({field: {onChange, onBlur, value}}) => (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  placeholder="Username"
-                />
-              </View>
-            )}
-            name="username"
-          />
-          {errors.username && (
-            <Text style={styles.error}>{errors.username.message}</Text>
+          {user.username && (
+            <>
+              {/* Username Field */}
+              <Label
+                value="Username"
+                color={customColors.text}
+                textStyle={styles.inputLabel}
+              />
+
+              <Controller
+                control={control}
+                rules={{required: 'Username is required'}}
+                render={({field: {onChange, onBlur, value}}) => (
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      style={styles.input}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Username"
+                    />
+                  </View>
+                )}
+                name="username"
+              />
+              {errors.username && (
+                <Text style={styles.error}>{errors.username.message}</Text>
+              )}
+            </>
           )}
 
           {/* Name */}
@@ -238,7 +256,6 @@ const ProfileEditForm = () => {
             onPress={() => {
               router.push('/auth/changePassword');
             }}>
-              
             <Label
               value={'Change Password'}
               color={customColors.primary}

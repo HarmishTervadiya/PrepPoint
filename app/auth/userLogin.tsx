@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Alert,
+  BackHandler,
   ScrollView,
   StyleSheet,
   Text,
@@ -43,6 +44,19 @@ const UserLogin = () => {
   } = useForm<LoginForm>({
     defaultValues: { email: '', password: '' },
   });
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.replace('/(main)');
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
 
   const onSubmit = async (data: LoginForm) => {
     try {
