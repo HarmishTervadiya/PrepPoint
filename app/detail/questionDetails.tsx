@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
@@ -31,8 +32,11 @@ import Profile from '@/assets/images/icons/user-icon.png';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import timeAgoFormatter from '@/utils/dateFormatter';
 import {Alert} from 'react-native';
+import {usePreventScreenCapture} from 'expo-screen-capture';
 
 const QuestionDetails = () => {
+  usePreventScreenCapture();
+
   const {questionId} = useLocalSearchParams();
 
   const [IsCollapsed, setIsCollapsed] = useState(true);
@@ -55,7 +59,19 @@ const QuestionDetails = () => {
   const hasIncreasedReadCount = useRef(false);
   const readCountTimeout = useRef<NodeJS.Timeout | null>(null);
   const startTime = useRef(Date.now());
-  
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.back();
+        return true;
+      },
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   useEffect(() => {
     if (questionId) {
       fetchQuestionDetails();
@@ -98,7 +114,7 @@ const QuestionDetails = () => {
     // Calculate elapsed time and remaining time
     const elapsedTime = Date.now() - startTime.current;
     const remainingTime = Math.max(0, 10000 - elapsedTime); // 150000ms = 2.5 minutes
-    
+
     // Clear the current timeout since we're navigating away
     if (readCountTimeout.current) {
       clearTimeout(readCountTimeout.current);
@@ -207,18 +223,18 @@ const QuestionDetails = () => {
                     ]}>
                     {questionDetails?.owner?.username || ''}
                   </Text>
-                  </View>
+                </View>
 
-                  <Text
-                    style={[
-                      styles.cardText,
-                      Typography.cardDetails,
-                      {color: customColors.secondaryText},
-                    ]}>
-                    {questionDetails?.marks
-                      ? `${questionDetails.marks} Marks`
-                      : ''}
-                  </Text>
+                <Text
+                  style={[
+                    styles.cardText,
+                    Typography.cardDetails,
+                    {color: customColors.secondaryText},
+                  ]}>
+                  {questionDetails?.marks
+                    ? `${questionDetails.marks} Marks`
+                    : ''}
+                </Text>
               </View>
 
               <View style={styles.metadataContainer}>

@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   RefreshControl,
@@ -83,8 +84,31 @@ const Index = () => {
   );
 
   const handleLogout = () => {
-    dispatch(clearUserData());
-    router.replace('/auth/userLogin');
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          onPress: () => {
+            dispatch(clearUserData());
+            router.replace('/auth/userLogin');
+          },
+          style: 'destructive',
+        },
+      ],
+      {
+        cancelable: true,
+        onDismiss: () => {
+          // Optional: Handle when user dismisses the alert by tapping outside
+        },
+      }
+    );
   };
 
   const navigateToQuestion = (questionId: string) => {

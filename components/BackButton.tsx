@@ -14,6 +14,8 @@ const BackButton = () => {
       const currentRoute = segments[segments.length - 1];
       if(currentRoute === 'userLogin') {
         router.replace('/(main)'); 
+      } else if(currentRoute === 'userDashboard'){
+        router.replace('/(main)'); 
       } else {
         router.back();
       }

@@ -77,7 +77,14 @@ const UploadQuestion = () => {
   useFocusEffect(
     useCallback(() => {
       if(!authUser.user.id){
+        Alert.alert("Authentication", 'Please login to your account')
         router.push('/auth/userLogin')
+        return
+      }
+      
+      if (!authUser.user.isVerified) {
+        Alert.alert("Verification", 'Please verify your account to open dashboard')
+        router.push('/auth/userVerification');
       }
     }, [authUser])
   );

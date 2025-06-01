@@ -83,6 +83,8 @@ const UserProfile = () => {
         Alert.alert('Authentication', 'Please login to your account');
         router.push('/auth/userLogin');
       }
+
+      dispatch(getUserProfileDetails(authUser.user.id))
     }, [authUser]),
   );
 

@@ -1,4 +1,4 @@
-import {StyleSheet, View} from 'react-native';
+import {BackHandler, StyleSheet, View} from 'react-native';
 import React, { useEffect, useRef } from 'react';
 import {useLocalSearchParams, useRouter} from 'expo-router';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -7,13 +7,16 @@ import Label from '@/components/text/Label';
 import Pdf from 'react-native-pdf';
 import { increaseReadCount } from '@/redux-toolkit/features/content/questionSlice';
 import { useAppDispatch } from '@/redux-toolkit/store';
+import { usePreventScreenCapture } from 'expo-screen-capture';
 const fileViewer = () => {
+  usePreventScreenCapture()
   const {uri, title, questionId, remainingTime, hasReadCountIncreased} = useLocalSearchParams();
   
   const dispatch = useAppDispatch();
   const readCountTimeout = useRef<NodeJS.Timeout | null>(null);
   const hasIncreasedReadCountRef = useRef(hasReadCountIncreased === 'true');
-
+  const router = useRouter()
+  
   useEffect(() => {
     // Only set up the timeout if the read count hasn't been increased yet
     if (!hasIncreasedReadCountRef.current && remainingTime && parseInt(remainingTime as string) > 0) {
@@ -36,6 +39,18 @@ const fileViewer = () => {
     };
   }, [questionId, remainingTime, hasReadCountIncreased]);
 
+  
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.back();
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
   
   return (
     <SafeAreaView style={styles.container}>

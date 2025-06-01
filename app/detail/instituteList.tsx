@@ -1,4 +1,5 @@
 import {
+  BackHandler,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -27,6 +28,7 @@ import {
 } from '@/redux-toolkit/features/content/instituteSlice';
 import InstituteCard from '@/components/cards/InstituteCard';
 import BackButton from '@/components/BackButton';
+import { useRouter } from 'expo-router';
 
 const InstituteList = () => {
   const dispatch = useAppDispatch();
@@ -35,6 +37,20 @@ const InstituteList = () => {
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const {institutes} = useAppSelector(state => state.instituteReducer);
+  const router = useRouter()
+
+  
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        router.back();
+        return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   useEffect(() => {
     getAllInstitutes();
@@ -91,6 +107,7 @@ const InstituteList = () => {
               icon={SearchIcon}
             />
 
+
             {institutes && institutes.length > 0 ? (
               <FlatList
                 data={institutes}
@@ -101,6 +118,10 @@ const InstituteList = () => {
                     logo={item.instituteLogo.uri}
                   />
                 )}
+                numColumns={2}
+                ItemSeparatorComponent={() => <View style={{width: 8}}/>}
+                initialNumToRender={10}
+                // contentContainerStyle={{flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8}}
                 scrollEnabled={false}
               />
             ) : (

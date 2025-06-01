@@ -15,7 +15,7 @@ import React from 'react';
 import {MenuProvider} from 'react-native-popup-menu';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-SplashScreen.setOptions({fade: true})
+SplashScreen.setOptions({fade: true});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -36,7 +36,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : LightTheme}>
-        <MenuProvider>
+        <MenuProvider backHandler>
           <Stack screenOptions={{animation: 'none'}}>
             <Stack.Screen
               name="auth/userVerification"

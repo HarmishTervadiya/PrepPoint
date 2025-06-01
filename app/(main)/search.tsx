@@ -9,7 +9,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  BackHandler,
 } from 'react-native';
 import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {useAppDispatch, useAppSelector} from '@/redux-toolkit/store';
@@ -67,90 +66,113 @@ const search = () => {
     subjectId: '',
   });
 
-  // Reference to the menu for controlling open/close state
   const menuRef = useRef(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
-  const fetchTopQuestions = useCallback(async () => {
-    dispatch(getTopQuestions());
-    dispatch(getAllInstitutes());
-    dispatch(getAllSubjects());
-    dispatch(getAllCourses());
-  }, [dispatch]);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
-  // Effect to handle cleanup when component loses focus (tab switch)
+  const fetchInitialData = useCallback(async () => {
+    if (!initialDataLoaded) {
+      await Promise.all([
+        dispatch(getTopQuestions()),
+        dispatch(getAllInstitutes()),
+        dispatch(getAllSubjects()),
+        dispatch(getAllCourses()),
+      ]);
+      setInitialDataLoaded(true);
+    }
+  }, [dispatch, initialDataLoaded]);
+
+  const resetComponentState = useCallback(() => {
+    setSearchValue('');
+    setActiveFilters({
+      instituteId: '',
+      courseId: '',
+      subjectId: '',
+    });
+    reset({
+      instituteId: '',
+      courseId: '',
+      subjectId: '',
+    });
+  }, [reset]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchTopQuestions();
-      // When screen loses focus, reset filters
+      fetchInitialData();
       return () => {
-        clearFilters();
-        // Close menu if open when switching tabs
-        if (menuRef.current && menuOpen) {
-          setMenuOpen(false);
-        }
+        resetComponentState();
       };
-    }, [fetchTopQuestions, menuOpen]),
+    }, [fetchInitialData, resetComponentState]),
   );
-
-  useEffect(() => {
-    fetchTopQuestions();
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        if (menuOpen) {
-          setMenuOpen(false);
-          return true;
-        }
-        return false;
-      },
-    );
-
-    return () => backHandler.remove();
-  }, [fetchTopQuestions, menuOpen]);
 
   const handleRefresh = useCallback(() => {
     setRefreshLoading(true);
-    fetchTopQuestions();
-    setTimeout(() => {
-      setRefreshLoading(false);
-    }, 1000);
-  }, [fetchTopQuestions]);
+    Promise.all([
+      dispatch(getTopQuestions()),
+      dispatch(getAllInstitutes()),
+      dispatch(getAllSubjects()),
+      dispatch(getAllCourses()),
+    ]).finally(() => {
+      setTimeout(() => {
+        setRefreshLoading(false);
+      }, 1000);
+    });
+  }, [dispatch]);
 
+  // Debounced search function to prevent excessive API calls
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   const handleSearch = useCallback(
     (text: string) => {
       setSearchValue(text);
-      dispatch(
-        searchQuestions({
-          searchQuery: text,
-          filters: activeFilters,
-        }),
-      );
+
+      // Clear existing timeout
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+
+      // Set new timeout for debounced search
+      searchTimeout.current = setTimeout(() => {
+        dispatch(
+          searchQuestions({
+            searchQuery: text,
+            filters: activeFilters,
+          }),
+        );
+      }, 300); // 300ms debounce
     },
     [activeFilters, dispatch],
   );
 
-  const handleFilterChange = (data: any) => {
-    const newFilters = {
-      instituteId: data.instituteId || '',
-      courseId: data.courseId || '',
-      subjectId: data.subjectId || '',
+  // Clean up timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
     };
+  }, []);
 
-    setActiveFilters(newFilters);
+  const handleFilterChange = useCallback(
+    (data: any) => {
+      const newFilters = {
+        instituteId: data.instituteId || '',
+        courseId: data.courseId || '',
+        subjectId: data.subjectId || '',
+      };
 
-    dispatch(
-      searchQuestions({
-        searchQuery: searchValue,
-        filters: newFilters,
-      }),
-    );
+      setActiveFilters(newFilters);
 
-    setMenuOpen(false);
-  };
+      dispatch(
+        searchQuestions({
+          searchQuery: searchValue,
+          filters: newFilters,
+        }),
+      );
+    },
+    [searchValue, dispatch],
+  );
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setActiveFilters({
       instituteId: '',
       courseId: '',
@@ -169,7 +191,7 @@ const search = () => {
         filters: {},
       }),
     );
-  };
+  }, [searchValue, dispatch, reset]);
 
   const handleQuestionPress = useCallback(
     (questionId: string) => {
@@ -181,23 +203,62 @@ const search = () => {
     [router],
   );
 
-  const getFilterName = (type: string, id: string) => {
-    if (!id) return '';
+  const getFilterName = useCallback(
+    (type: string, id: string) => {
+      if (!id) return '';
 
-    switch (type) {
-      case 'institute':
-        return (
-          institutes.find(i => i._id === id)?.instituteName ||
-          'Selected Institute'
-        );
-      case 'course':
-        return courses.find(c => c._id === id)?.courseName || 'Selected Course';
-      case 'subject':
-        return subjects.find(s => s._id === id)?.name || 'Selected Subject';
-      default:
-        return '';
-    }
-  };
+      switch (type) {
+        case 'institute':
+          return (
+            institutes.find(i => i._id === id)?.instituteName ||
+            'Selected Institute'
+          );
+        case 'course':
+          return (
+            courses.find(c => c._id === id)?.courseName || 'Selected Course'
+          );
+        case 'subject':
+          return subjects.find(s => s._id === id)?.name || 'Selected Subject';
+        default:
+          return '';
+      }
+    },
+    [institutes, courses, subjects],
+  );
+
+  // Memoized filter options to prevent unnecessary re-renders
+  const instituteOptions = React.useMemo(
+    () =>
+      institutes.map(institute => ({
+        label: institute.instituteName,
+        value: institute._id,
+      })),
+    [institutes],
+  );
+
+  const courseOptions = React.useMemo(
+    () =>
+      courses.map(course => ({
+        label: course.courseName,
+        value: course._id,
+      })),
+    [courses],
+  );
+
+  const subjectOptions = React.useMemo(
+    () =>
+      subjects.map(subject => ({
+        label: subject.name,
+        value: subject._id,
+      })),
+    [subjects],
+  );
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    activeFilters.instituteId ||
+    activeFilters.courseId ||
+    activeFilters.subjectId;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -253,8 +314,6 @@ const search = () => {
               <Menu
                 ref={menuRef}
                 renderer={SlideInMenu}
-                onOpen={() => setMenuOpen(true)}
-                onClose={() => setMenuOpen(false)}
                 style={[
                   styles.filterButtonContainer,
                   {
@@ -298,17 +357,12 @@ const search = () => {
 
                   <Controller
                     control={control}
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({field: {onChange, value}}) => (
                       <DropdownField
-                        options={institutes.map(institute => ({
-                          label: institute.instituteName,
-                          value: institute._id,
-                        }))}
+                        options={instituteOptions}
                         placeholder={'Select Institute'}
                         value={value}
-                        onSelect={selectedValue => {
-                          onChange(selectedValue);
-                        }}
+                        onSelect={onChange}
                       />
                     )}
                     name={'instituteId'}
@@ -316,17 +370,12 @@ const search = () => {
 
                   <Controller
                     control={control}
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({field: {onChange, value}}) => (
                       <DropdownField
-                        options={courses.map(course => ({
-                          label: course.courseName,
-                          value: course._id,
-                        }))}
+                        options={courseOptions}
                         placeholder={'Select Course'}
                         value={value}
-                        onSelect={selectedValue => {
-                          onChange(selectedValue);
-                        }}
+                        onSelect={onChange}
                       />
                     )}
                     name={'courseId'}
@@ -334,17 +383,12 @@ const search = () => {
 
                   <Controller
                     control={control}
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({field: {onChange, value}}) => (
                       <DropdownField
-                        options={subjects.map(subject => ({
-                          label: subject.name,
-                          value: subject._id,
-                        }))}
+                        options={subjectOptions}
                         placeholder={'Select Subject'}
                         value={value}
-                        onSelect={selectedValue => {
-                          onChange(selectedValue);
-                        }}
+                        onSelect={onChange}
                       />
                     )}
                     name={'subjectId'}
@@ -363,9 +407,7 @@ const search = () => {
             </View>
 
             {/* Filter indicators if any filter is active */}
-            {(activeFilters.instituteId ||
-              activeFilters.courseId ||
-              activeFilters.subjectId) && (
+            {hasActiveFilters && (
               <View style={styles.activeFilterIndicator}>
                 <View style={{flex: 1}}>
                   {activeFilters.instituteId && (
