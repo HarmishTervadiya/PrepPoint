@@ -465,6 +465,21 @@ const dashboard = () => {
                 />
               </View>
 
+              {
+                withdrawalHistory.length === 0 ? (
+                  <View
+                    style={{
+                      padding: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    <Label
+                      value={'No withdrawal requests found'}
+                      color={customColors.text}
+                      textStyle={{fontWeight: '500'}}
+                    />
+                  </View>
+                ) : (
               <FlatList
                 data={withdrawalHistory.toReversed()}
                 scrollEnabled={false}
@@ -520,6 +535,8 @@ const dashboard = () => {
                   </View>
                 )}
               />
+              )
+              }
             </View>
           </View>
         )}

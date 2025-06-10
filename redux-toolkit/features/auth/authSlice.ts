@@ -51,7 +51,7 @@ const generateOtp = createAsyncThunk(
   'auth/generateOtp',
   async (email: string, thunkAPI) => {
     try {
-      const response = await api.post('/student/generateOtp', {email});
+      const response = await api.post('/student/generateOtp', {email: email.toLowerCase()});
       return response.data;
     } catch (error) {
       const errorMessage = apiErrorMessageHandler(error);
@@ -126,7 +126,7 @@ const authenticateUser = createAsyncThunk(
   async (data: LoginForm, thunkAPI) => {
     try {
       const response = await api.post('/student/login/', {
-        email: data.email,
+        email: data.email.toLowerCase(),
         password: data.password,
       });
       return response.data;
@@ -144,7 +144,7 @@ const signupUser = createAsyncThunk(
     try {
       const formData = new FormData();
       formData.append('name', data.name);
-      formData.append('email', data.email);
+      formData.append('email', data.email.toLowerCase());
       formData.append('password', data.password);
 
       const response = await api.post('/student/signup', formData, {
